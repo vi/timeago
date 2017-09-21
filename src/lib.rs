@@ -7,6 +7,8 @@ use std::time::Duration;
 pub enum Style {
     /// Long format, like "~2 years ago"
     LONG,
+    /// Human format, like LONG but makes less than 1 second as `just now`
+    HUMAN,
     /// Short format, like "02Yea"
     SHORT,
 }
@@ -57,6 +59,27 @@ pub fn format(d: Duration, style: Style) -> String {
                 x => format!("~{} years ago", x / 12 / S_IN_MNTH),
             }
         }
+        Style::HUMAN => {
+            match s {
+                0 => "just now".into(),
+                1 => "1 second ago".into(),
+                x if x > 1 && x < 60 => format!("{} seconds ago", x),
+                x if x >= 60 && x < 120 => "1 minute ago".into(),
+                x if x >= 120 && x < 60 * 60 => format!("{} minutes ago", x / 60),
+                x if x >= 60 * 60 && x < 60 * 60 * 2 => "1 hour ago".into(),
+                x if x >= 60 * 60 * 2 && x < 60 * 60 * 24 => format!("{} hours ago", x / 60 / 60),
+                x if x >= 60 * 60 * 24 && x < 60 * 60 * 24 * 2 => "1 day ago".into(),
+                x if x >= 60 * 60 * 24 * 2 && x < S_IN_MNTH => {
+                    format!("{} days ago", x / 60 / 60 / 24)
+                }
+                x if x >= S_IN_MNTH && x < 2 * S_IN_MNTH => "~1 month ago".into(),
+                x if x >= 2 * S_IN_MNTH && x < 12 * S_IN_MNTH => {
+                    format!("~{} months ago", x / S_IN_MNTH)
+                }
+                x if x >= 12 * S_IN_MNTH && x < 12 * 2 * S_IN_MNTH => "~1 year ago".into(),
+                x => format!("~{} years ago", x / 12 / S_IN_MNTH),
+            }
+        }
         Style::SHORT => {
             match s {
                 0 => " now ".into(),
@@ -89,6 +112,9 @@ mod tests {
     fn fmtl(d: Duration) -> String {
         format(d, Style::LONG)
     }
+    fn fmth(d: Duration) -> String {
+        format(d, Style::HUMAN)
+    }
     fn fmts(d: Duration) -> String {
         format(d, Style::SHORT)
     }
@@ -108,6 +134,22 @@ mod tests {
         assert_eq!(fmtl(dns(3600)), "1 hour ago");
         assert_eq!(fmtl(dns(1000_000)), "11 days ago");
         assert_eq!(fmtl(dns(1000_000_000)), "~31 years ago");
+    }
+    #[test]
+    fn test_human() {
+        assert_eq!(fmth(dns(0)), "just now");
+        assert_eq!(fmth(dn(0, 500_000_000)), "just now");
+        assert_eq!(fmth(dns(1)), "1 second ago");
+        assert_eq!(fmth(dn(1, 500_000_000)), "1 second ago");
+        assert_eq!(fmth(dns(59)), "59 seconds ago");
+        assert_eq!(fmth(dns(60)), "1 minute ago");
+        assert_eq!(fmth(dns(65)), "1 minute ago");
+        assert_eq!(fmth(dns(119)), "1 minute ago");
+        assert_eq!(fmth(dns(120)), "2 minutes ago");
+        assert_eq!(fmth(dns(3599)), "59 minutes ago");
+        assert_eq!(fmth(dns(3600)), "1 hour ago");
+        assert_eq!(fmth(dns(1000_000)), "11 days ago");
+        assert_eq!(fmth(dns(1000_000_000)), "~31 years ago");
     }
 
     #[test]
