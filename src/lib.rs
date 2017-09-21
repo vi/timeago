@@ -9,13 +9,13 @@ pub enum Style {
     LONG,
     /// Human format, like LONG but makes less than 1 second as `just now`
     HUMAN,
-    /// Short format, like "02Yea"
+    /// Short format, like "02Yea". Should be exactly 5 characters.
     SHORT,
 }
 
 const S_IN_MNTH: u64 = 2628003; // 2628002,88 seconds according to Google
 
-/// Do the formatting
+/// Do the formatting. See `Duration`'s docstring for formatting options.
 ///
 /// ```
 /// extern crate timeago;
