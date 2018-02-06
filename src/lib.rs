@@ -3,7 +3,8 @@
 
 use std::time::Duration;
 
-/// Formatting style for `format`
+/// Simple formatting style for deprecated `format`.
+#[deprecated(since="0.1.0",note="Use Conv")]
 pub enum Style {
     /// Long format, like "~2 years ago"
     LONG,
@@ -15,12 +16,16 @@ pub enum Style {
 
 const S_IN_MNTH: u64 = 2628003; // 2628002,88 seconds according to Google
 
-/// Do the formatting. See `Duration`'s docstring for formatting options.
+/// Do the formatting. See `Style`'s docstring for formatting options.
+/// If you need just simple mode without bloated featureful implementation,
+/// use version 0.0.2 of this crate
 ///
 /// ```
 /// extern crate timeago;
 /// assert_eq!(timeago::format(std::time::Duration::new(3600, 0), timeago::Style::LONG), "1 hour ago");
 /// ```
+#[deprecated(since="0.1.0",note="Use Conv")]
+#[allow(deprecated)]
 pub fn format(d: Duration, style: Style) -> String {
     let s = d.as_secs();
     let n = d.subsec_nanos();
@@ -101,6 +106,7 @@ pub fn format(d: Duration, style: Style) -> String {
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
+    #[allow(deprecated)]
     use super::{Style, format};
 
     fn dns(secs: u64) -> Duration {
@@ -109,12 +115,15 @@ mod tests {
     fn dn(secs: u64, nanos: u32) -> Duration {
         Duration::new(secs, nanos)
     }
+    #[allow(deprecated)]
     fn fmtl(d: Duration) -> String {
         format(d, Style::LONG)
     }
+    #[allow(deprecated)]
     fn fmth(d: Duration) -> String {
         format(d, Style::HUMAN)
     }
+    #[allow(deprecated)]
     fn fmts(d: Duration) -> String {
         format(d, Style::SHORT)
     }
