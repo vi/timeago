@@ -1,10 +1,96 @@
 #![deny(missing_docs)]
+#![allow(dead_code)]
 //! Given a Duration, lossily format it like in 'N days ago'. Parsing it back to Duration is not supported yet. English only, at least for now.
 
 use std::time::Duration;
 
+/// Natural language to use for the formatting
+#[allow(missing_docs)]
+#[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd,Hash)]
+pub enum Language {
+    English,
+    Russian,
+    Belarussian,
+    German,
+    Polish,
+    #[doc(hidden)]
+    ThisEnumMayBeExtendedWithoutMajorVersionBump,
+}
+
+impl Language {
+    fn too_low(&self) -> &'static str {
+        match *self {
+            Language::English => "now",
+            _ => unimplemented!(),
+        }
+    }
+    fn too_high(&self) -> &'static str {
+        match *self {
+            Language::English => "old",
+            _ => unimplemented!(),
+        }
+    }
+}
+
+/// Various units of time to specify as maximum or minimum.
+/// Note that calculations are approximate, not calendar-based.
+#[allow(missing_docs)]
+#[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd,Hash)]
+pub enum Unit {
+    Nanoseconds,
+    Microseconds,
+    Milliseconds,
+    Seconds,
+    Minutes,
+    Days,
+    Months,
+    Years,
+}
+
+/// Main formatter struct. Build it with new() and maybe modify some options, then use convert
+pub struct Formatter {
+    lang: Language,
+    num_items: usize,
+    minunit: Unit,
+    maxunit: Unit,
+    too_low: &'static str,
+    too_high: &'static str,
+}
+
+impl Formatter {
+    /// Constructor for some default formatting in english
+    pub fn new() -> Formatter {
+        Formatter {
+            lang: Language::English,
+            num_items: 1,
+            minunit: Unit::Seconds,
+            maxunit: Unit::Years,
+            too_low: Language::English.too_low(),
+            too_high: Language::English.too_high(),
+        }
+    }
+}
+
+/// A simplified formatter, resulting in short strings like "02Yea" or " now " or "07min".
+/// Designed to always give 5-character strings.
+pub fn format_5chars(d: Duration) -> String {
+    let s = d.as_secs();
+    match s {
+        0 => " now ".into(),
+        x if x > 0 && x < 60 => format!("{:02}sec", x),
+        x if x >= 60 && x < 60 * 60 => format!("{:02}min", x / 60),
+        x if x >= 60 * 60 && x < 60 * 60 * 24 => format!("{:02}hou", x / 60 / 60),
+        x if x >= 60 * 60 * 24 && x < S_IN_MNTH => format!("{:02}day", x / 60 / 60 / 24),
+        x if x >= S_IN_MNTH && x < 12 * S_IN_MNTH => format!("{:02}Mon", x / S_IN_MNTH),
+        x if x >= 12 * S_IN_MNTH && x <= 99 * 12 * S_IN_MNTH => {
+            format!("{:02}Yea", x / 12 / S_IN_MNTH)
+        }
+        _ => " OLD ".into(),
+    }
+}
+
 /// Simple formatting style for deprecated `format`.
-#[deprecated(since="0.1.0",note="Use Conv")]
+#[deprecated(since="0.1.0",note="Use Formatter or format_5chars")]
 pub enum Style {
     /// Long format, like "~2 years ago"
     LONG,
@@ -24,7 +110,7 @@ const S_IN_MNTH: u64 = 2628003; // 2628002,88 seconds according to Google
 /// extern crate timeago;
 /// assert_eq!(timeago::format(std::time::Duration::new(3600, 0), timeago::Style::LONG), "1 hour ago");
 /// ```
-#[deprecated(since="0.1.0",note="Use Conv")]
+#[deprecated(since="0.1.0",note="Use Formatter or format_5chars")]
 #[allow(deprecated)]
 pub fn format(d: Duration, style: Style) -> String {
     let s = d.as_secs();
@@ -86,18 +172,7 @@ pub fn format(d: Duration, style: Style) -> String {
             }
         }
         Style::SHORT => {
-            match s {
-                0 => " now ".into(),
-                x if x > 0 && x < 60 => format!("{:02}sec", x),
-                x if x >= 60 && x < 60 * 60 => format!("{:02}min", x / 60),
-                x if x >= 60 * 60 && x < 60 * 60 * 24 => format!("{:02}hou", x / 60 / 60),
-                x if x >= 60 * 60 * 24 && x < S_IN_MNTH => format!("{:02}day", x / 60 / 60 / 24),
-                x if x >= S_IN_MNTH && x < 12 * S_IN_MNTH => format!("{:02}Mon", x / S_IN_MNTH),
-                x if x >= 12 * S_IN_MNTH && x <= 99 * 12 * S_IN_MNTH => {
-                    format!("{:02}Yea", x / 12 / S_IN_MNTH)
-                }
-                _ => " OLD ".into(),
-            }
+            format_5chars(d)
         }
     }
 }
