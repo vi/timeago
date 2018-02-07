@@ -30,13 +30,19 @@ impl Language {
             _ => unimplemented!(),
         }
     }
+    fn ago(&self) -> &'static str {
+        match *self {
+            Language::English => "ago",
+            _ => unimplemented!(),
+        }
+    }
 }
 
 /// Various units of time to specify as maximum or minimum.
 /// Note that calculations are approximate, not calendar-based.
 #[allow(missing_docs)]
 #[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd,Hash)]
-pub enum Unit {
+pub enum TimeUnit {
     Nanoseconds,
     Microseconds,
     Milliseconds,
@@ -51,10 +57,11 @@ pub enum Unit {
 pub struct Formatter {
     lang: Language,
     num_items: usize,
-    minunit: Unit,
-    maxunit: Unit,
+    min_unit: TimeUnit,
+    max_unit: TimeUnit,
     too_low: &'static str,
     too_high: &'static str,
+    ago: &'static str,
 }
 
 impl Formatter {
@@ -63,11 +70,75 @@ impl Formatter {
         Formatter {
             lang: Language::English,
             num_items: 1,
-            minunit: Unit::Seconds,
-            maxunit: Unit::Years,
+            min_unit: TimeUnit::Seconds,
+            max_unit: TimeUnit::Years,
             too_low: Language::English.too_low(),
             too_high: Language::English.too_high(),
+            ago: Language::English.ago(),
         }
+    }
+    
+    /// Set formatting language from a pre-defined set.
+    /// Also sets `too_low`, `too_high` and `ago`.
+    /// TODO: example
+    pub fn language(&mut self, x: Language) -> &mut Self {
+        self.lang = x;
+        self.too_low = x.too_low();
+        self.too_high = x.too_high();
+        self.ago = x.ago();
+        self
+    }
+    
+    /// Set number of items to emit
+    /// TODO: example
+    pub fn num_items(&mut self, x: usize) -> &mut Self {
+        self.num_items = x;
+        self
+    }
+    
+    /// Set maximum used unit. Above that it is "old"
+    /// TODO: example
+    pub fn max_unit(&mut self, x: TimeUnit) -> &mut Self {
+        self.max_unit = x;
+        self
+    }
+    
+    /// Set minimum used unit. Below that it is "now"
+    /// TODO: example
+    pub fn min_unit(&mut self, x: TimeUnit) -> &mut Self {
+        self.min_unit = x;
+        self
+    }
+    
+    /// Override what is used instead of "now" for too low units.
+    /// Set it after "lang", or it will be overwritten.
+    /// TODO: example
+    pub fn too_low(&mut self, x: &'static str) -> &mut Self {
+        self.too_low = x;
+        self
+    }
+    
+    /// Override what is used instead of "old" for too high units.
+    /// Set it after "lang", or it will be overwritten.
+    /// TODO: example
+    pub fn too_high(&mut self, x: &'static str) -> &mut Self {
+        self.too_low = x;
+        self
+    }
+    
+    /// Override what is used instead of "ago".
+    /// Empty string literal `""` is a bit special in the space handling.
+    /// Set it after "lang", or it will be overwritten.
+    /// TODO: example
+    pub fn ago(&mut self, x: &'static str) -> &mut Self {
+        self.ago = x;
+        self
+    }
+    
+    /// Do the actual conversion. Not implemented currently, use version 0.0.2
+    /// TODO: example
+    pub fn convert(&self, _x: Duration) -> String {
+        unimplemented!();
     }
 }
 
