@@ -89,7 +89,7 @@ impl Formatter {
         self
     }
     
-    /// Set number of items to emit
+    /// Set number of time unit items to emit (like 1 item for "1 year" or 3 items for "1 year and 3 months and 17 days")
     /// TODO: example
     pub fn num_items(&mut self, x: usize) -> &mut Self {
         self.num_items = x;
