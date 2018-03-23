@@ -21,6 +21,11 @@ pub trait Language {
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str;
 }
 
+#[allow(unused)]
+fn assert_Language_is_dyn_capable() {
+    Box::new(English) as Box<Language>;
+}
+
 /// Default language for timeago
 #[derive(Default)]
 pub struct English;
