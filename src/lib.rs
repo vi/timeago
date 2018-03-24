@@ -263,9 +263,8 @@ fn split_up(d:Duration, tu: TimeUnit) -> (u64, Duration) {
     let tus = tud.as_secs();
     let tun = tud.subsec_nanos();
     
-    assert!((tus == 0) ^ (tun == 0));
-    
     if tus != 0 {
+        assert!(tun == 0);
         if s == 0 {
             (0, d)
         } else {
@@ -273,14 +272,78 @@ fn split_up(d:Duration, tu: TimeUnit) -> (u64, Duration) {
             (c, Duration::new(s2, n))
         }
     } else {
+        // subsecond timeunit
+        assert!(tus == 0);
         if s == 0 {
             let (c, n2) = divmod32(n, tun);
             (c.into(), Duration::new(0, n2))
         } else {
-            // tricky case: may be overflow
-            unimplemented!()
+            assert!(1000_000_000 % tun  == 0);
+            let tuninv = 1000_000_000 / (tun as u64);
+            let pieces = s
+                .saturating_mul(tuninv)
+                .saturating_add( (n / tun) as u64);
+            
+            let subtract_s = pieces / tuninv;
+            let subtract_ns = ((pieces % tuninv) as u32) * tun;
+            
+            let (mut s,mut n) = (s,n);
+            
+            if subtract_ns > n {
+                s -= 1;
+                n += 1000_000_000;
+            }
+            
+            let remain_s = s - subtract_s;
+            let remain_ns = n - subtract_ns;
+            (pieces, Duration::new(remain_s, remain_ns))
         }
     }
+}
+
+#[cfg(test)]
+mod tests_split_up {
+    use super::*;
+    
+    fn ds(secs: u64) -> Duration {
+        Duration::from_secs(secs)
+    }
+    fn dn(secs: u64, nanos: u32) -> Duration {
+        Duration::new(secs, nanos)
+    }
+    
+    #[test]
+    fn split_up_test_sane() {
+        use TimeUnit::*;
+        
+        assert_eq!(split_up(ds(120), Minutes), (2, ds(0)));
+        assert_eq!(split_up(ds(119), Minutes), (1, ds(59)));
+        assert_eq!(split_up(ds(60), Minutes), (1, ds(0)));
+        assert_eq!(split_up(ds(1), Minutes), (0, ds(1)));
+        assert_eq!(split_up(ds(0), Minutes), (0, ds(0)));
+        assert_eq!(split_up(ds(3600), Minutes), (60, ds(0)));
+        assert_eq!(split_up(ds(3600), Hours), (1, ds(0)));
+        assert_eq!(split_up(ds(3600), Seconds), (3600, ds(0)));
+        assert_eq!(split_up(ds(3600), Milliseconds), (3600_000, ds(0)));
+        assert_eq!(split_up(ds(100000000), Years), (3, ds(5391892)));
+        assert_eq!(split_up(ds(100000000), Months), (38, ds(135886)));
+        assert_eq!(split_up(ds(100000000), Days), (1157, ds(35200)));
+        assert_eq!(split_up(ds(3600), Microseconds), (3600_000_000, ds(0)));
+    }
+    #[test]
+    fn split_up_test_tricky() {
+        use TimeUnit::*;
+        
+        assert_eq!(split_up(ds(3600), Nanoseconds), (3600_000_000_000, ds(0)));
+        assert_eq!(split_up(ds(3600_000), Nanoseconds), (3600_000_000_000_000, ds(0)));
+        assert_eq!(split_up(ds(3600_000_000), Nanoseconds), (3600_000_000_000_000_000, ds(0)));
+        assert_eq!(split_up(ds(3600_000_000_000), Nanoseconds), (std::u64::MAX, dn(3581_553_255_926, 290448385)));
+        assert_eq!(split_up(ds(3600_000_000_000), Microseconds), (3600_000_000_000_000_000, ds(0)));
+        assert_eq!(split_up(ds(3600_000_000_000_000), Microseconds), (std::u64::MAX, dn(3581_553_255_926_290, 448385000)));
+        assert_eq!(split_up(ds(3600_000_000_000_000), Milliseconds), (3600_000_000_000_000_000, ds(0)));
+        assert_eq!(split_up(ds(3600_000_000_000_000_000), Milliseconds), (std::u64::MAX, dn(3581_553_255_926_290_448, 385000000)));
+    }
+
 }
 
 /// A simplified formatter, resulting in short strings like "02Yea" or " now " or "07min".
