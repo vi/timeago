@@ -346,7 +346,19 @@ impl <L:Language> Formatter<L> {
             dtu = dtu.smaller_unit().unwrap();
         }
         
+        while dtu < self.min_unit {
+            dtu = dtu.bigger_unit().unwrap();
+        }
+        
         let (x, _rem) = split_up(d, dtu);
+        
+        if x == 0 {
+            let now = self.too_low.unwrap_or(self.lang.too_low());
+            if now != "0" {
+                return now.to_owned()
+            }
+        }
+        
         let ago = self.ago.unwrap_or(self.lang.ago());
         if ago == "" {
             format!("{} {}", x, self.lang.get_word(dtu, x))
