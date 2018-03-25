@@ -336,9 +336,18 @@ impl <L:Language> Formatter<L> {
     /// assert_eq!(f.convert(d), "1 day ago");
     /// ```
     pub fn convert(&self, d: Duration) -> String {
+        if d > self.max_duration {
+            return self.too_high.unwrap_or(self.lang.too_high()).to_owned()
+        }
+    
         let dtu = dominant_time_unit(d);
         let (x, _rem) = split_up(d, dtu);
-        format!("{} {} {}", x, self.lang.get_word(dtu, x), self.lang.ago())
+        let ago = self.ago.unwrap_or(self.lang.ago());
+        if ago == "" {
+            format!("{} {}", x, self.lang.get_word(dtu, x))
+        } else {
+            format!("{} {} {}", x, self.lang.get_word(dtu, x), ago)
+        }
     }
 }
 
