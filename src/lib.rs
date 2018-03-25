@@ -235,15 +235,15 @@ fn dominant_time_unit(d:Duration) -> TimeUnit {
     use TimeUnit::*;
     
     match d {
-        x if x <= Nanoseconds .min_duration() => Nanoseconds ,
-        x if x <= Microseconds.min_duration() => Microseconds,
-        x if x <= Milliseconds.min_duration() => Milliseconds,
-        x if x <= Seconds     .min_duration() => Seconds     ,
-        x if x <= Minutes     .min_duration() => Minutes     ,
-        x if x <= Hours       .min_duration() => Hours       ,
-        x if x <= Days        .min_duration() => Days        ,
-        x if x <= Weeks       .min_duration() => Weeks       ,
-        x if x <= Months      .min_duration() => Months      ,
+        x if x < Microseconds.min_duration() => Nanoseconds ,
+        x if x < Milliseconds.min_duration() => Microseconds,
+        x if x < Seconds     .min_duration() => Milliseconds,
+        x if x < Minutes     .min_duration() => Seconds     ,
+        x if x < Hours       .min_duration() => Minutes     ,
+        x if x < Days        .min_duration() => Hours       ,
+        x if x < Weeks       .min_duration() => Days        ,
+        x if x < Months      .min_duration() => Weeks       ,
+        x if x < Years       .min_duration() => Months      ,
         _ => Years,
     }
 }
@@ -310,6 +310,15 @@ mod tests_split_up {
     }
     fn dn(secs: u64, nanos: u32) -> Duration {
         Duration::new(secs, nanos)
+    }
+    
+    #[test]
+    fn dominant_time_unit_test() {
+        use TimeUnit::*;
+    
+        assert_eq!(dominant_time_unit(ds(3)), Seconds);
+        assert_eq!(dominant_time_unit(ds(60)), Minutes);
+        assert_eq!(dominant_time_unit(dn(0, 250_000_000)), Milliseconds);
     }
     
     #[test]
