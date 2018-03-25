@@ -166,6 +166,7 @@ pub struct Formatter<L : Language = English>  {
     too_low: Option<&'static str>,
     too_high: Option<&'static str>,
     ago: Option<&'static str>,
+    max_duration: Duration,
 }
 
 impl Formatter {
@@ -185,50 +186,141 @@ impl <L:Language> Formatter<L> {
             too_low: None,
             too_high: None,
             ago: None,
+            max_duration: Duration::new(std::u64::MAX, 999_999_999),
         }
     }
     
-    
-    /// Set number of time unit items to emit (like 1 item for "1 year" or 3 items for "1 year and 3 months and 17 days")
-    /// TODO: example
+    /// Set number of time unit items to emit (for example, 1 item is for "1 year"; 3 items is for "1 year 3 months 17 days"). Zero chunks like "0 minutes" are not emitted, expect of at the end if `too_low` is `"0"`.
+    /// Default is 1.
+    /// ```
+    /// let mut f = timeago::Formatter::new();
+    /// f.num_items(1);
+    /// let d = std::time::Duration::from_secs(3600+60+3);
+    /// assert_eq!(f.convert(d), "1 hour");
+    /// f.num_items(2);
+    /// assert_eq!(f.convert(d), "1 hour 1 minute");
+    /// f.num_items(3);
+    /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds");
+    /// f.num_items(4);
+    /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds");
+    /// ```
     pub fn num_items(&mut self, x: usize) -> &mut Self {
         assert!(x > 0);
         self.num_items = x;
         self
     }
     
-    /// Set maximum used unit. Above that it just emits "old" (or some analogue).
-    /// TODO: example
+    /// Set maximum used unit. Not to be confused with `max_duration`.
+    /// Should not affect appearance of "old" or other `too_high` values.
+    /// ```
+    /// let mut f = timeago::Formatter::new();
+    /// f.max_unit(timeago::TimeUnit::Hours);
+    /// let d = std::time::Duration::from_secs(30);
+    /// assert_eq!(f.convert(d), "1 minute");
+    /// let d = std::time::Duration::from_secs(3600);
+    /// assert_eq!(f.convert(d), "1 hour");
+    /// let d = std::time::Duration::from_secs(24*3600);
+    /// assert_eq!(f.convert(d), "24 hours");
+    /// let d = std::time::Duration::from_secs(30*24*3600);
+    /// assert_eq!(f.convert(d), "720 hours");
+    /// ```
     pub fn max_unit(&mut self, x: TimeUnit) -> &mut Self {
         self.max_unit = x;
         self
     }
     
-    /// Set minimum used unit. Durations below minimally representable by that unit emit `too_low` value like "now", or like "0 days" instead of "2 minutes".
-    /// TODO: example
+    /// Set minimum used unit. Durations below minimally representable by that unit emit `too_low` value like "now", or like "0 days" instead of normal output.
+    /// When `num_items` > 1, it also acts as precision limiter.
+    /// ```
+    /// let mut f = timeago::Formatter::new();
+    /// f.min_unit(timeago::TimeUnit::Minutes);
+    /// let d = std::time::Duration::from_secs(30);
+    /// assert_eq!(f.convert(d), "now");
+    /// let d = std::time::Duration::from_secs(90);
+    /// assert_eq!(f.convert(d), "1 minute");
+    /// ```
+    /// ```
+    /// let mut f = timeago::Formatter::new();
+    /// f.num_items(99);
+    /// let d = std::time::Duration::new(1*3600*24 + 2*3600 + 3*60 + 4, 500_000_000);
+    /// assert_eq!(f.convert(d), "1 day 2 hours 3 minutes 4 seconds");
+    /// f.min_unit(timeago::TimeUnit::Hours);
+    /// assert_eq!(f.convert(d), "1 day 2 hours");
+    /// f.min_unit(timeago::TimeUnit::Microseconds);
+    /// assert_eq!(f.convert(d), "1 day 2 hours 3 minutes 4 seconds 500 milliseconds");
+    /// f.min_unit(timeago::TimeUnit::Months);
+    /// assert_eq!(f.convert(d), "now");
+    /// ```
     pub fn min_unit(&mut self, x: TimeUnit) -> &mut Self {
         self.min_unit = x;
         self
     }
     
-    /// Override what is used instead of "now" for too low units.
-    /// Setting this to special value `"0"` causes to emit output like "0 days", depending on `min_unit` property.
-    /// TODO: example
+    /// Override what is used instead of "now" for too short durations (not representable with the time unit configures as `min_unit`).
+    /// Setting this to special value `"0"` causes emitting output like "0 days", depending on `min_unit` property.
+    /// Note that `Language`'s `too_low` is not used in this case, except of for `"0"`.
+    /// ```
+    /// let mut f = timeago::Formatter::new();
+    /// f.min_unit(timeago::TimeUnit::Months)
+    ///  .too_low("this month");
+    /// let d = std::time::Duration::from_secs(24*3600);
+    /// assert_eq!(f.convert(d), "this month");
+    /// ```
+    /// ```
+    /// let mut f = timeago::Formatter::new();
+    /// f.min_unit(timeago::TimeUnit::Minutes);
+    /// let d = std::time::Duration::from_secs(30);
+    /// assert_eq!(f.convert(d), "now");
+    /// f.too_low("-");
+    /// assert_eq!(f.convert(d), "-");
+    /// f.too_low("");
+    /// assert_eq!(f.convert(d), "");
+    /// f.too_low("0");
+    /// assert_eq!(f.convert(d), "0 minutes");
+    /// ```
     pub fn too_low(&mut self, x: &'static str) -> &mut Self {
         self.too_low = Some(x);
         self
     }
     
     /// Override what is used instead of "old" for too high units.
-    /// TODO: example
+    /// Note that `Language`'s `too_high` is not used in this case.
+    /// ```
+    /// let mut f = timeago::Formatter::new();
+    /// f.max_duration(std::time::Duration::from_secs(3600*24*30));
+    /// f.too_high("ancient");
+    /// let d = std::time::Duration::from_secs(1000_000_000_000);
+    /// assert_eq!(f.convert(d), "ancient");
+    /// ```
     pub fn too_high(&mut self, x: &'static str) -> &mut Self {
         self.too_high = Some(x);
         self
     }
     
+    /// Maximum duration before it start giving "old" (or other `too_high` value)
+    /// ```
+    /// let mut f = timeago::Formatter::new();
+    /// f.max_duration(std::time::Duration::new(3600*24*30, 0));
+    /// let d = std::time::Duration::from_secs(1000_000_000);
+    /// assert_eq!(f.convert(d), "old");
+    /// ```
+    pub fn max_duration(&mut self, x: Duration) -> &mut Self {
+        self.max_duration = x;
+        self
+    }
+    
+    
     /// Override what is used instead of "ago".
     /// Empty string literal `""` is a bit special in the space handling.
-    /// TODO: example
+    /// ```
+    /// let mut f = timeago::Formatter::new();
+    /// let d = std::time::Duration::from_secs(60);
+    /// assert_eq!(f.convert(d), "1 minute ago");
+    /// f.ago("later");
+    /// assert_eq!(f.convert(d), "1 minute later");
+    /// f.ago("");
+    /// assert_eq!(f.convert(d), "1 minute");
+    /// ```
     pub fn ago(&mut self, x: &'static str) -> &mut Self {
         self.ago = Some(x);
         self
@@ -240,8 +332,8 @@ impl <L:Language> Formatter<L> {
     /// See module-level doc for more info.
     /// ```
     /// let f = timeago::Formatter::new();
-    /// let d = std::time::Duration::from_secs(3600);
-    /// assert_eq!(f.convert(d), "1 hour ago");
+    /// let d = std::time::Duration::from_secs(3600*24);
+    /// assert_eq!(f.convert(d), "1 day ago");
     /// ```
     pub fn convert(&self, d: Duration) -> String {
         let dtu = dominant_time_unit(d);
