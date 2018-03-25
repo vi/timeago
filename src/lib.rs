@@ -215,14 +215,14 @@ impl <L:Language> Formatter<L> {
     /// ```
     /// let mut f = timeago::Formatter::new();
     /// f.max_unit(timeago::TimeUnit::Hours);
-    /// let d = std::time::Duration::from_secs(30);
-    /// assert_eq!(f.convert(d), "1 minute");
+    /// let d = std::time::Duration::from_secs(60);
+    /// assert_eq!(f.convert(d), "1 minute ago");
     /// let d = std::time::Duration::from_secs(3600);
-    /// assert_eq!(f.convert(d), "1 hour");
+    /// assert_eq!(f.convert(d), "1 hour ago");
     /// let d = std::time::Duration::from_secs(24*3600);
-    /// assert_eq!(f.convert(d), "24 hours");
+    /// assert_eq!(f.convert(d), "24 hours ago");
     /// let d = std::time::Duration::from_secs(30*24*3600);
-    /// assert_eq!(f.convert(d), "720 hours");
+    /// assert_eq!(f.convert(d), "720 hours ago");
     /// ```
     pub fn max_unit(&mut self, x: TimeUnit) -> &mut Self {
         self.max_unit = x;
@@ -237,17 +237,17 @@ impl <L:Language> Formatter<L> {
     /// let d = std::time::Duration::from_secs(30);
     /// assert_eq!(f.convert(d), "now");
     /// let d = std::time::Duration::from_secs(90);
-    /// assert_eq!(f.convert(d), "1 minute");
+    /// assert_eq!(f.convert(d), "1 minute ago");
     /// ```
     /// ```
     /// let mut f = timeago::Formatter::new();
     /// f.num_items(99);
     /// let d = std::time::Duration::new(1*3600*24 + 2*3600 + 3*60 + 4, 500_000_000);
-    /// assert_eq!(f.convert(d), "1 day 2 hours 3 minutes 4 seconds");
+    /// assert_eq!(f.convert(d), "1 day 2 hours 3 minutes 4 seconds ago");
     /// f.min_unit(timeago::TimeUnit::Hours);
-    /// assert_eq!(f.convert(d), "1 day 2 hours");
+    /// assert_eq!(f.convert(d), "1 day 2 hours ago");
     /// f.min_unit(timeago::TimeUnit::Microseconds);
-    /// assert_eq!(f.convert(d), "1 day 2 hours 3 minutes 4 seconds 500 milliseconds");
+    /// assert_eq!(f.convert(d), "1 day 2 hours 3 minutes 4 seconds 500 milliseconds ago");
     /// f.min_unit(timeago::TimeUnit::Months);
     /// assert_eq!(f.convert(d), "now");
     /// ```
@@ -276,7 +276,7 @@ impl <L:Language> Formatter<L> {
     /// f.too_low("");
     /// assert_eq!(f.convert(d), "");
     /// f.too_low("0");
-    /// assert_eq!(f.convert(d), "0 minutes");
+    /// assert_eq!(f.convert(d), "0 minutes ago");
     /// ```
     pub fn too_low(&mut self, x: &'static str) -> &mut Self {
         self.too_low = Some(x);
@@ -340,7 +340,12 @@ impl <L:Language> Formatter<L> {
             return self.too_high.unwrap_or(self.lang.too_high()).to_owned()
         }
     
-        let dtu = dominant_time_unit(d);
+        let mut dtu = dominant_time_unit(d);
+        
+        while dtu > self.max_unit {
+            dtu = dtu.smaller_unit().unwrap();
+        }
+        
         let (x, _rem) = split_up(d, dtu);
         let ago = self.ago.unwrap_or(self.lang.ago());
         if ago == "" {
