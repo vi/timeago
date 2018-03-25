@@ -3,8 +3,11 @@ name = "timeago"
 version = "0.1.0"
 authors = ["Vitaly _Vi Shukela <vi0oss@gmail.com>"]
 license = "MIT/Apache-2.0"
-description = "Given a Duration, lossily format it like in 'N days ago'. Parsing it back to Duration is not supported yet. English only, at least for now."
+description = "Given a Duration, lossily format it like in 'N days ago'. Parsing it back to Duration is not supported yet."
 repository = "https://github.com/vi/timeago"
 documentation = "https://docs.rs/timeago/"
 
 [dependencies]
+
+[features]
+isolang=[]

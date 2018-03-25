@@ -1,8 +1,20 @@
 #![deny(missing_docs)]
 #![allow(dead_code)]
-//! Given a Duration, lossily format it like in 'N days ago'. Parsing it back to Duration is not supported yet. English only, at least for now.
+//! Given a Duration, lossily format it like in 'N days ago'.
+//! Parsing it back to Duration is not supported yet (See `chrono-english` crate).
+//! Multiple languages are supported though `Language` trait.
+//! Enable `isolang` feature to gain support of getting Language impl from
+//! `lsolang::Language`.
+//! You can configure minimum and maximum time units, as well as "precision" of
+//! how many items to emit.
+//! Fractional results like "1.5 days ago" are not supported.
+//! There is a special simplified version to get compact 5-character representation: `format_5chars`.
 
 use std::time::Duration;
+
+#[cfg(feature="isolang")]
+compile_error!("isolang feature is not implemented yet");
+
 
 /// Natural language to use for the formatting
 /// TODO: connect it to `isolang` crate somehow
@@ -140,7 +152,7 @@ impl TimeUnit {
     }
 }
 
-/// Main formatter struct. Build it with new() and maybe modify some options, then use convert
+/// Main formatter struct. Build it with new() and maybe modify some options, then use convert.
 /// ```
 /// let f = timeago::Formatter::new();
 /// let d = std::time::Duration::from_secs(3600);
@@ -222,8 +234,15 @@ impl <L:Language> Formatter<L> {
         self
     }
     
-    /// Do the actual conversion. Not implemented currently, use version 0.0.2
-    /// TODO: example
+    /// Convert specified `Duration` to a String representing
+    /// approximation of specified timespan as a string like
+    /// "5 days ago", with specified by other methods settings.
+    /// See module-level doc for more info.
+    /// ```
+    /// let f = timeago::Formatter::new();
+    /// let d = std::time::Duration::from_secs(3600);
+    /// assert_eq!(f.convert(d), "1 hour ago");
+    /// ```
     pub fn convert(&self, d: Duration) -> String {
         let dtu = dominant_time_unit(d);
         let (x, _rem) = split_up(d, dtu);
