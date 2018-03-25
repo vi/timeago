@@ -42,44 +42,13 @@ impl<L:Language+?Sized> Language for Box<L> {
     }
 }
 
-/// Default language for timeago
-#[derive(Default)]
-pub struct English;
-impl Language for English {
-    fn too_low (&self) -> &'static str { "now" }
-    fn too_high(&self) -> &'static str { "old" }
-    fn ago(&self)      -> &'static str { "ago" }
-    fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
-        use TimeUnit::*;
-        if x == 1 {
-            match tu {
-                Nanoseconds   =>  "nanosecond",
-                Microseconds  =>  "microsecond",
-                Milliseconds  =>  "millisecond",
-                Seconds       =>  "second",
-                Minutes       =>  "minute",
-                Hours         =>  "hour",
-                Days          =>  "day",
-                Weeks         =>  "week",
-                Months        =>  "month",
-                Years         =>  "year",
-            }
-        } else {
-            match tu {
-                Nanoseconds   =>  "nanoseconds",
-                Microseconds  =>  "microseconds",
-                Milliseconds  =>  "milliseconds",
-                Seconds       =>  "seconds",
-                Minutes       =>  "minutes",
-                Hours         =>  "hours",
-                Days          =>  "days",
-                Weeks         =>  "weeks",
-                Months        =>  "months",
-                Years         =>  "years",
-            }
-        }
-    }
-}
+/// Natural languages supported out-of-the-box for the formatting.
+/// You can implement a language yourself by deriving the `Language` trait.
+/// You can also choose the language at runtime using the `isolang` cargo feature.
+pub mod languages;
+
+pub use languages::english::English;
+
 
 /// Various units of time to specify as maximum or minimum.
 /// Note that calculations are approximate, not calendar-based.
