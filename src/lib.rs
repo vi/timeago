@@ -196,13 +196,13 @@ impl <L:Language> Formatter<L> {
     /// let mut f = timeago::Formatter::new();
     /// f.num_items(1);
     /// let d = std::time::Duration::from_secs(3600+60+3);
-    /// assert_eq!(f.convert(d), "1 hour");
+    /// assert_eq!(f.convert(d), "1 hour ago");
     /// f.num_items(2);
-    /// assert_eq!(f.convert(d), "1 hour 1 minute");
+    /// assert_eq!(f.convert(d), "1 hour 1 minute ago");
     /// f.num_items(3);
-    /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds");
+    /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds ago");
     /// f.num_items(4);
-    /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds");
+    /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds ago");
     /// ```
     pub fn num_items(&mut self, x: usize) -> &mut Self {
         assert!(x > 0);
@@ -340,6 +340,28 @@ impl <L:Language> Formatter<L> {
             return self.too_high.unwrap_or(self.lang.too_high()).to_owned()
         }
     
+        let mut ret = self.convert_impl(d, self.num_items);
+        
+        if ret == "" {
+            let now = self.too_low.unwrap_or(self.lang.too_low());
+            if now != "0" {
+                return now.to_owned()
+            } else {
+                ret = format!("0 {}", self.lang.get_word(self.min_unit, 0));
+            }
+        }
+        
+        let ago = self.ago.unwrap_or(self.lang.ago());
+        if ago == "" {
+            ret
+        } else {
+            format!("{} {}", ret, ago)
+        }
+    }
+    
+    fn convert_impl(&self, d: Duration, items_left: usize) -> String {
+        if items_left == 0 { return "".to_owned(); }
+        
         let mut dtu = dominant_time_unit(d);
         
         while dtu > self.max_unit {
@@ -350,20 +372,17 @@ impl <L:Language> Formatter<L> {
             dtu = dtu.bigger_unit().unwrap();
         }
         
-        let (x, _rem) = split_up(d, dtu);
+        let (x, rem) = split_up(d, dtu);
         
         if x == 0 {
-            let now = self.too_low.unwrap_or(self.lang.too_low());
-            if now != "0" {
-                return now.to_owned()
-            }
+            return "".to_owned()
         }
         
-        let ago = self.ago.unwrap_or(self.lang.ago());
-        if ago == "" {
-            format!("{} {}", x, self.lang.get_word(dtu, x))
+        let recurse_result = self.convert_impl(rem, items_left-1);
+        if recurse_result == "" {
+            format!("{} {}"   , x, self.lang.get_word(dtu, x))
         } else {
-            format!("{} {} {}", x, self.lang.get_word(dtu, x), ago)
+            format!("{} {} {}", x, self.lang.get_word(dtu, x), recurse_result)
         }
     }
 }
