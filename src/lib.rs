@@ -31,6 +31,9 @@ pub trait Language {
     
     /// Get word representing the given time unit, for using with `x` number
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str;
+    
+    /// For German and such
+    fn place_ago_before(&self) -> bool { false }
 }
 
 impl<L:Language+?Sized> Language for Box<L> {
@@ -332,7 +335,11 @@ impl <L:Language> Formatter<L> {
         if ago == "" {
             ret
         } else {
-            format!("{} {}", ret, ago)
+            if ! self.lang.place_ago_before() {
+                format!("{} {}", ret, ago)
+            } else {
+                format!("{} {}", ago, ret)
+            }
         }
     }
     
