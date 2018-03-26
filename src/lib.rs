@@ -32,6 +32,9 @@ pub trait Language {
     
     /// For German and such
     fn place_ago_before(&self) -> bool { false }
+    
+    /// What to put between chunks. By default it's `", "`.
+    fn get_comma(&self) -> &'static str { ", " }
 }
 
 impl<L:Language+?Sized> Language for Box<L> {
@@ -181,11 +184,11 @@ impl <L:Language> Formatter<L> {
     /// let d = std::time::Duration::from_secs(3600+60+3);
     /// assert_eq!(f.convert(d), "1 hour ago");
     /// f.num_items(2);
-    /// assert_eq!(f.convert(d), "1 hour 1 minute ago");
+    /// assert_eq!(f.convert(d), "1 hour, 1 minute ago");
     /// f.num_items(3);
-    /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds ago");
+    /// assert_eq!(f.convert(d), "1 hour, 1 minute, 3 seconds ago");
     /// f.num_items(4);
-    /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds ago");
+    /// assert_eq!(f.convert(d), "1 hour, 1 minute, 3 seconds ago");
     /// ```
     pub fn num_items(&mut self, x: usize) -> &mut Self {
         assert!(x > 0);
@@ -226,11 +229,11 @@ impl <L:Language> Formatter<L> {
     /// let mut f = timeago::Formatter::new();
     /// f.num_items(99);
     /// let d = std::time::Duration::new(1*3600*24 + 2*3600 + 3*60 + 4, 500_000_000);
-    /// assert_eq!(f.convert(d), "1 day 2 hours 3 minutes 4 seconds ago");
+    /// assert_eq!(f.convert(d), "1 day, 2 hours, 3 minutes, 4 seconds ago");
     /// f.min_unit(timeago::TimeUnit::Hours);
-    /// assert_eq!(f.convert(d), "1 day 2 hours ago");
+    /// assert_eq!(f.convert(d), "1 day, 2 hours ago");
     /// f.min_unit(timeago::TimeUnit::Microseconds);
-    /// assert_eq!(f.convert(d), "1 day 2 hours 3 minutes 4 seconds 500 milliseconds ago");
+    /// assert_eq!(f.convert(d), "1 day, 2 hours, 3 minutes, 4 seconds, 500 milliseconds ago");
     /// f.min_unit(timeago::TimeUnit::Months);
     /// assert_eq!(f.convert(d), "now");
     /// ```
@@ -369,7 +372,12 @@ impl <L:Language> Formatter<L> {
         if recurse_result == "" {
             format!("{} {}"   , x, self.lang.get_word(dtu, x))
         } else {
-            format!("{} {} {}", x, self.lang.get_word(dtu, x), recurse_result)
+            format!("{} {}{}{}"
+                ,x
+                ,self.lang.get_word(dtu, x)
+                ,self.lang.get_comma()
+                ,recurse_result
+            )
         }
     }
 }
