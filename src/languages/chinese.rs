@@ -8,32 +8,17 @@ impl Language for Chinese {
     fn ago(&self)      -> &'static str { "之前" }
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
         use TimeUnit::*;
-        if x == 1 {
-            match tu {
-                Nanoseconds   =>  "纳秒",
-                Microseconds  =>  "微秒",
-                Milliseconds  =>  "毫秒",
-                Seconds       =>  "秒",
-                Minutes       =>  "分",
-                Hours         =>  "小时",
-                Days          =>  "天",
-                Weeks         =>  "周",
-                Months        =>  "月",
-                Years         =>  "年",
-            }
-        } else {
-            match tu {
-                Nanoseconds   =>  "纳秒",
-                Microseconds  =>  "微秒",
-                Milliseconds  =>  "毫秒",
-                Seconds       =>  "秒",
-                Minutes       =>  "分",
-                Hours         =>  "小时",
-                Days          =>  "天",
-                Weeks         =>  "周",
-                Months        =>  "月",
-                Years         =>  "年",
-            }
+        match tu {
+            Nanoseconds   =>  "纳秒",
+            Microseconds  =>  "微秒",
+            Milliseconds  =>  "毫秒",
+            Seconds       =>  "秒",
+            Minutes       =>  "分",
+            Hours         =>  "小时",
+            Days          =>  "天",
+            Weeks         =>  "周",
+            Months        =>  "月",
+            Years         =>  "年",
         }
     }
 }
