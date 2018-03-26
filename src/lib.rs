@@ -540,63 +540,13 @@ const S_IN_MNTH: u64 = 2628003; // 2628002,88 seconds according to Google
 #[deprecated(since="0.1.0",note="Use Formatter or format_5chars")]
 #[allow(deprecated)]
 pub fn format(d: Duration, style: Style) -> String {
-    let s = d.as_secs();
-    let n = d.subsec_nanos();
     match style {
         Style::LONG => {
-            match s {
-                0 => {
-                    match n {
-                        0 => "now".into(),
-                        1 => "1 nanosecond ago".into(),
-                        x if x > 1 && x < 1000 => format!("{} nanoseconds ago", n),
-                        x if x >= 1000 && x < 2000 => "1 microsecond ago".into(),
-                        x if x >= 2000 && x < 1000_000 => format!("{} milliseconds ago", n / 1000),
-                        x if x >= 1000_000 && x < 2000_000 => "1 millisecond ago".into(),
-                        x if x >= 2000_000 && x < 1000_000_000 => {
-                            format!("{} milliseconds ago", n / 1000_000)
-                        }
-                        _ => panic!("Invalid duration passed to timeago::format"),
-                    }
-                }
-                1 => "1 second ago".into(),
-                x if x > 1 && x < 60 => format!("{} seconds ago", x),
-                x if x >= 60 && x < 120 => "1 minute ago".into(),
-                x if x >= 120 && x < 60 * 60 => format!("{} minutes ago", x / 60),
-                x if x >= 60 * 60 && x < 60 * 60 * 2 => "1 hour ago".into(),
-                x if x >= 60 * 60 * 2 && x < 60 * 60 * 24 => format!("{} hours ago", x / 60 / 60),
-                x if x >= 60 * 60 * 24 && x < 60 * 60 * 24 * 2 => "1 day ago".into(),
-                x if x >= 60 * 60 * 24 * 2 && x < S_IN_MNTH => {
-                    format!("{} days ago", x / 60 / 60 / 24)
-                }
-                x if x >= S_IN_MNTH && x < 2 * S_IN_MNTH => "~1 month ago".into(),
-                x if x >= 2 * S_IN_MNTH && x < 12 * S_IN_MNTH => {
-                    format!("~{} months ago", x / S_IN_MNTH)
-                }
-                x if x >= 12 * S_IN_MNTH && x < 12 * 2 * S_IN_MNTH => "~1 year ago".into(),
-                x => format!("~{} years ago", x / 12 / S_IN_MNTH),
-            }
+            Formatter::new().min_unit(TimeUnit::Nanoseconds).convert(d)
         }
         Style::HUMAN => {
-            match s {
-                0 => "just now".into(),
-                1 => "1 second ago".into(),
-                x if x > 1 && x < 60 => format!("{} seconds ago", x),
-                x if x >= 60 && x < 120 => "1 minute ago".into(),
-                x if x >= 120 && x < 60 * 60 => format!("{} minutes ago", x / 60),
-                x if x >= 60 * 60 && x < 60 * 60 * 2 => "1 hour ago".into(),
-                x if x >= 60 * 60 * 2 && x < 60 * 60 * 24 => format!("{} hours ago", x / 60 / 60),
-                x if x >= 60 * 60 * 24 && x < 60 * 60 * 24 * 2 => "1 day ago".into(),
-                x if x >= 60 * 60 * 24 * 2 && x < S_IN_MNTH => {
-                    format!("{} days ago", x / 60 / 60 / 24)
-                }
-                x if x >= S_IN_MNTH && x < 2 * S_IN_MNTH => "~1 month ago".into(),
-                x if x >= 2 * S_IN_MNTH && x < 12 * S_IN_MNTH => {
-                    format!("~{} months ago", x / S_IN_MNTH)
-                }
-                x if x >= 12 * S_IN_MNTH && x < 12 * 2 * S_IN_MNTH => "~1 year ago".into(),
-                x => format!("~{} years ago", x / 12 / S_IN_MNTH),
-            }
+            let ret = Formatter::new().convert(d);
+            if ret == "now" { "just now".to_owned() } else { ret }
         }
         Style::SHORT => {
             format_5chars(d)
@@ -604,7 +554,7 @@ pub fn format(d: Duration, style: Style) -> String {
     }
 }
 
-/*
+
 #[cfg(test)]
 mod tests {
     use std::time::Duration;
@@ -643,8 +593,8 @@ mod tests {
         assert_eq!(fmtl(dns(120)), "2 minutes ago");
         assert_eq!(fmtl(dns(3599)), "59 minutes ago");
         assert_eq!(fmtl(dns(3600)), "1 hour ago");
-        assert_eq!(fmtl(dns(1000_000)), "11 days ago");
-        assert_eq!(fmtl(dns(1000_000_000)), "~31 years ago");
+        assert_eq!(fmtl(dns(1000_000)), "1 week ago");
+        assert_eq!(fmtl(dns(1000_000_000)), "31 years ago");
     }
     #[test]
     fn test_human() {
@@ -659,8 +609,8 @@ mod tests {
         assert_eq!(fmth(dns(120)), "2 minutes ago");
         assert_eq!(fmth(dns(3599)), "59 minutes ago");
         assert_eq!(fmth(dns(3600)), "1 hour ago");
-        assert_eq!(fmth(dns(1000_000)), "11 days ago");
-        assert_eq!(fmth(dns(1000_000_000)), "~31 years ago");
+        assert_eq!(fmth(dns(1000_000)), "1 week ago");
+        assert_eq!(fmth(dns(1000_000_000)), "31 years ago");
     }
 
     #[test]
@@ -680,4 +630,4 @@ mod tests {
         assert_eq!(fmts(dns(1000_000_000)), "31Yea");
     }
 }
-*/
+
