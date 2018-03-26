@@ -3,3 +3,4 @@ pub mod english;
 pub mod russian;
 pub mod belarusian;
 pub mod german;
+pub mod polish;
