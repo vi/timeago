@@ -1,6 +1,5 @@
 use super::super::{Language, TimeUnit};
 
-/// Default language for timeago
 #[derive(Default)]
 pub struct Swedish;
 impl Language for Swedish {
