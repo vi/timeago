@@ -9,11 +9,9 @@
 //! how many items to emit.
 //! Fractional results like "1.5 days ago" are not supported.
 //! There is a special simplified version to get compact 5-character representation: `format_5chars`.
+//! Main struct is `Formatter`.
 
 use std::time::Duration;
-
-#[cfg(feature="isolang")]
-compile_error!("isolang feature is not implemented yet");
 
 
 /// Natural language to use for the formatting
@@ -51,6 +49,10 @@ impl<L:Language+?Sized> Language for Box<L> {
 /// Note: Currently translations expect of English and Russian are not authoritative.
 #[cfg(feature="translations")]
 pub mod languages;
+
+#[cfg(all(feature="isolang",feature="translations"))]
+pub use languages::from_isolang;
+
 #[cfg(not(feature="translations"))]
 /// Non-english modes are currently disabled by omission of "translations" cargo feature.
 pub mod languages {

@@ -8,8 +8,8 @@ repository = "https://github.com/vi/timeago"
 documentation = "https://docs.rs/timeago/"
 
 [dependencies]
+isolang={version="0.2", optional=true}
 
 [features]
 default = ["translations"]
-isolang=[]
 translations=[]
