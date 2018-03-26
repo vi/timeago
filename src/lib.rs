@@ -14,8 +14,8 @@
 use std::time::Duration;
 
 
-/// Natural language to use for the formatting
-/// TODO: connect it to `isolang` crate somehow
+/// Interface for connecting natural languages to use for the formatting
+/// See "language" module documentation for details.
 #[allow(missing_docs)]
 pub trait Language {
     /// What to emit by default if value is too high
