@@ -36,7 +36,7 @@ pub use self::isolang::Language as IsolangLanguage;
 pub fn from_isolang(x : isolang::Language) -> Option<Box<super::Language>> {
     Some(match x {
         x if x.to_name() == "English"    => boxup(english::English),
-        x if x.to_name() == "Chinese"    => boxup(english::Chinese),
+        x if x.to_name() == "Chinese"    => boxup(chinese::Chinese),
         x if x.to_name() == "Russian"    => boxup(russian::Russian),
         x if x.to_name() == "German"     => boxup(german::German),
         x if x.to_name() == "Belarusian" => boxup(belarusian::Belarusian),
