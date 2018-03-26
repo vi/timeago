@@ -45,7 +45,15 @@ impl<L:Language+?Sized> Language for Box<L> {
 /// Natural languages supported out-of-the-box for the formatting.
 /// You can implement a language yourself by deriving the `Language` trait.
 /// You can also choose the language at runtime using the `isolang` cargo feature.
+#[cfg(feature="translations")]
 pub mod languages;
+#[cfg(not(feature="translations"))]
+/// Non-english modes are currently disabled by omission of "translations" cargo feature.
+pub mod languages {
+    /// Non-english modes are currently disabled by omission of "translations" cargo feature.
+    pub mod english;
+}
+
 
 pub use languages::english::English;
 
