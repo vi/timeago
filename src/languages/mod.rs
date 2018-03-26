@@ -10,6 +10,7 @@ pub mod belarusian;
 pub mod german;
 pub mod polish;
 pub mod swedish;
+pub mod romanian;
 
 
 /// Helper function to make a language dynamically dispatched
@@ -41,6 +42,7 @@ pub fn from_isolang(x : isolang::Language) -> Option<Box<super::Language>> {
         x if x.to_name() == "Belarusian" => boxup(belarusian::Belarusian),
         x if x.to_name() == "Polish"     => boxup(polish::Polish),
         x if x.to_name() == "Swedish"    => boxup(swedish::Swedish),
+        x if x.to_name() == "Romanian"   => boxup(romanian::Romanian),
         _ => return None,
     })
 }
