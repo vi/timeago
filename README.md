@@ -27,6 +27,8 @@ impl Formatter {
 }
 
 pub fn from_isolang(x : isolang::Language) -> Option<Box<Language>>;
+
+pub fn format_5chars(d: Duration) -> String;
 ```
 
 A `Language` can be constructed from [isolang::Language](https://docs.rs/isolang/0.2.1/isolang/enum.Language.html).
