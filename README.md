@@ -33,6 +33,20 @@ pub fn format_5chars(d: Duration) -> String;
 
 A `Language` can be constructed from [isolang::Language](https://docs.rs/isolang/0.2.1/isolang/enum.Language.html).
 
+## Translations
+
+* English
+* Russian
+* German (unchecked)
+* Belarusian (unchecked)
+* Polish (unchecked)
+* Chinese (contributed)
+* Romanian (contributed)
+* Swedish (contributed)
+* Turkish (contributed)
+
+If you checked some language and certify that it's allright, submit a pull request that removes "(unchecked)" or "(contributed)" in the list above.
+
 ## Tool
 
 There is a helper command line tool that allows easier experimenting when adding a new translation:
