@@ -13,3 +13,6 @@ isolang={version="0.2", optional=true}
 [features]
 default = ["translations"]
 translations=[]
+
+[package.metadata.docs.rs]
+features = [ "translations", "isolang" ]
