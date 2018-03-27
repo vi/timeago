@@ -1,5 +1,4 @@
 #![deny(missing_docs)]
-#![allow(dead_code)]
 //! Given a Duration, lossily format it like in 'N days ago'.
 //! Parsing it back to Duration is not supported yet (See `chrono-english` crate).
 //! Multiple languages are supported though `Language` trait.
