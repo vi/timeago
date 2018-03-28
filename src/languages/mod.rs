@@ -23,6 +23,8 @@ pub fn boxup<L: super::Language + 'static> (x:L) -> Box<super::Language> {
 #[cfg(feature="isolang")]
 pub use self::isolang::Language as IsolangLanguage;
 
+/// Requires `isolang` Cargo feature
+///
 /// Try converting a isolang's language into our dynamically dispatched language
 /// ```
 /// extern crate isolang;
