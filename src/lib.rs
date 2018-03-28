@@ -12,6 +12,9 @@
 
 use std::time::Duration;
 
+#[cfg(feature="chrono")]
+extern crate chrono;
+
 
 /// Interface for connecting natural languages to use for the formatting
 /// See "language" module documentation for details.
@@ -308,6 +311,34 @@ impl <L:Language> Formatter<L> {
     pub fn ago(&mut self, x: &'static str) -> &mut Self {
         self.ago = Some(x);
         self
+    }
+    
+    /// Format the timespan between `from` and `to` as a string like "15 days ago".
+    ///
+    /// Requires `chrono` Cargo feature.
+    ///
+    /// `from` should come before `to`, otherwise `"???"` will be returned.
+    ///
+    /// Currently it doesn't actually take the calendar into account and just converts datetimes
+    /// into a plain old `std::time::Duration`, but in future here may be a proper implementation.
+    ///
+    /// ```
+    /// extern crate chrono;
+    /// extern crate timeago;
+    /// let mut f = timeago::Formatter::new();
+    /// f.num_items(2);
+    /// let from = chrono::DateTime::parse_from_rfc3339("2013-12-19T15:00:00+03:00").unwrap();
+    /// let to   = chrono::DateTime::parse_from_rfc3339("2013-12-23T17:00:00+03:00").unwrap();
+    /// assert_eq!(f.convert_chrono(from, to), "4 days 2 hours ago");
+    /// ```
+    #[cfg(feature="chrono")]
+    pub fn convert_chrono<Tz1,Tz2>(&self, from: chrono::DateTime<Tz1>, to: chrono::DateTime<Tz2>) -> String  where Tz1:chrono::TimeZone, Tz2 :chrono::TimeZone {
+        let q = to.signed_duration_since(from);
+        if let Ok(dur) = q.to_std() {
+            self.convert(dur)
+        } else {
+            "???".to_owned()
+        }
     }
     
     /// Convert specified `Duration` to a String representing
