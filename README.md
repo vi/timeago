@@ -24,6 +24,7 @@ impl Formatter {
     pub fn ago(&mut self, x: &'static str) -> &mut Self;
     
     pub fn convert(&self, d: Duration) -> String;
+    pub fn convert_chrono(&self, from: chrono::DateTime, to: chrono::DateTime) -> String;
 }
 
 pub fn from_isolang(x : isolang::Language) -> Option<Box<Language>>;
