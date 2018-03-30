@@ -1,27 +1,26 @@
 #![allow(missing_docs)]
 
-#[cfg(feature="isolang")]
+#[cfg(feature = "isolang")]
 extern crate isolang;
 
-pub mod chinese;
-pub mod japanese;
-pub mod english;
-pub mod russian;
 pub mod belarusian;
+pub mod chinese;
+pub mod english;
 pub mod german;
+pub mod japanese;
 pub mod polish;
-pub mod swedish;
 pub mod romanian;
+pub mod russian;
+pub mod swedish;
 pub mod turkish;
 
-
 /// Helper function to make a language dynamically dispatched
-pub fn boxup<L: super::Language + 'static> (x:L) -> Box<super::Language> {
+pub fn boxup<L: super::Language + 'static>(x: L) -> Box<super::Language> {
     Box::new(x) as Box<super::Language>
 }
 
 /// A public use for a public dependency.
-#[cfg(feature="isolang")]
+#[cfg(feature = "isolang")]
 pub use self::isolang::Language as IsolangLanguage;
 
 /// Requires `isolang` Cargo feature
@@ -36,8 +35,8 @@ pub use self::isolang::Language as IsolangLanguage;
 /// let d = std::time::Duration::from_secs(3600);
 /// assert_eq!(f.convert(d), "1 час назад");
 /// ```
-#[cfg(feature="isolang")]
-pub fn from_isolang(x : isolang::Language) -> Option<Box<super::Language>> {
+#[cfg(feature = "isolang")]
+pub fn from_isolang(x: isolang::Language) -> Option<Box<super::Language>> {
     Some(match x {
         x if x.to_name() == "English"    => boxup(english::English),
         x if x.to_name() == "Chinese"    => boxup(chinese::Chinese),

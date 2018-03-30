@@ -21,9 +21,8 @@
 
 use std::time::Duration;
 
-#[cfg(feature="chrono")]
+#[cfg(feature = "chrono")]
 extern crate chrono;
-
 
 /// Interface for connecting natural languages to use for the formatting
 /// See "language" module documentation for details.
@@ -31,18 +30,20 @@ extern crate chrono;
 pub trait Language {
     /// What to emit by default if value is too high
     fn too_low(&self) -> &'static str;
-    
+
     /// What to emit by default if value is too low
     fn too_high(&self) -> &'static str;
-    
+
     /// Chunk of text to put at the end by default
     fn ago(&self) -> &'static str;
-    
+
     /// Get word representing the given time unit, for using with `x` number
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str;
-    
+
     /// For German and such
-    fn place_ago_before(&self) -> bool { false }
+    fn place_ago_before(&self) -> bool {
+        false
+    }
 }
 
 impl<L:Language+?Sized> Language for Box<L> {
@@ -56,7 +57,7 @@ impl<L:Language+?Sized> Language for Box<L> {
 
 /// A collection of natural languages supported out-of-the-box for the formatting.
 ///
-/// You can implement a language yourself by deriving 
+/// You can implement a language yourself by deriving
 /// the `Language` trait (pull requests are welcome).
 ///
 /// The list of languages is also tracked in `README.md`.
@@ -67,27 +68,25 @@ impl<L:Language+?Sized> Language for Box<L> {
 /// Requires `translations` Cargo feature.
 ///
 /// [`from_isolang`]:fn.from_isolang.html
-#[cfg(feature="translations")]
+#[cfg(feature = "translations")]
 pub mod languages;
 
-#[cfg(all(feature="isolang",feature="translations"))]
+#[cfg(all(feature = "isolang", feature = "translations"))]
 pub use languages::from_isolang;
 
-#[cfg(not(feature="translations"))]
+#[cfg(not(feature = "translations"))]
 /// Non-english modes are currently disabled by omission of "translations" cargo feature.
 pub mod languages {
     /// Non-english modes are currently disabled by omission of "translations" cargo feature.
     pub mod english;
 }
 
-
 pub use languages::english::English;
-
 
 /// Various units of time to specify as maximum or minimum.
 /// Note that calculations are approximate, not calendar-based.
 #[allow(missing_docs)]
-#[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd,Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum TimeUnit {
     Nanoseconds,
     Microseconds,
@@ -110,15 +109,15 @@ impl TimeUnit {
             Microseconds => Duration::new(0, 1000),
             Milliseconds => Duration::new(0, 1_000_000),
             Seconds => Duration::new(1, 0),
-            Minutes => Duration::new(60,0),
-            Hours => Duration::new(60*60, 0),
-            Days => Duration::new(24*60*60, 0),
-            Weeks => Duration::new(7*24*60*60, 0),
+            Minutes => Duration::new(60, 0),
+            Hours => Duration::new(60 * 60, 0),
+            Days => Duration::new(24 * 60 * 60, 0),
+            Weeks => Duration::new(7 * 24 * 60 * 60, 0),
             Months => Duration::new(S_IN_MNTH, 0),
             Years => Duration::new(S_IN_MNTH * 12, 0),
         }
     }
-    
+
     /// "Upgrade" minutes to hours, hours to days and so on.
     pub fn bigger_unit(&self) -> Option<TimeUnit> {
         use TimeUnit::*;
@@ -135,7 +134,7 @@ impl TimeUnit {
             Years        => None,
         }
     }
-    
+
     /// "Downgrade" weeks to days, seconds to milliseconds and so on.
     pub fn smaller_unit(&self) -> Option<TimeUnit> {
         use TimeUnit::*;
@@ -160,7 +159,7 @@ impl TimeUnit {
 /// let d = std::time::Duration::from_secs(3600);
 /// assert_eq!(f.convert(d), "1 hour ago");
 /// ```
-pub struct Formatter<L : Language = English>  {
+pub struct Formatter<L: Language = English> {
     lang: L,
     num_items: usize,
     min_unit: TimeUnit,
@@ -185,11 +184,11 @@ impl Formatter {
         Formatter::with_language(English)
     }
 }
-impl <L:Language> Formatter<L> {
+impl<L: Language> Formatter<L> {
     /// Constructor for some default formatting with specified language instance
     ///
     /// It emits one item (chunk), limits to seconds and has no maximum duration.
-    pub fn with_language(l: L) -> Self  {
+    pub fn with_language(l: L) -> Self {
         Formatter {
             lang: l,
             num_items: 1,
@@ -201,7 +200,7 @@ impl <L:Language> Formatter<L> {
             max_duration: Duration::new(std::u64::MAX, 999_999_999),
         }
     }
-    
+
     /// Set number of time unit items to emit (for example, 1 item is for "1 year"; 3 items is for "1 year 3 months 17 days"). Zero chunks like "0 minutes" are not emitted, expect of at the end if `too_low` is `"0"`.
     /// Default is 1.
     /// ```
@@ -221,7 +220,7 @@ impl <L:Language> Formatter<L> {
         self.num_items = x;
         self
     }
-    
+
     /// Set maximum used unit. Not to be confused with `max_duration`.
     /// Should not affect appearance of "old" or other `too_high` values.
     /// ```
@@ -240,7 +239,7 @@ impl <L:Language> Formatter<L> {
         self.max_unit = x;
         self
     }
-    
+
     /// Set minimum used unit. Durations below minimally representable by that unit emit `too_low` value like "now", or like "0 days" instead of normal output.
     /// When `num_items` > 1, it also acts as precision limiter.
     /// ```
@@ -267,7 +266,7 @@ impl <L:Language> Formatter<L> {
         self.min_unit = x;
         self
     }
-    
+
     /// Override what is used instead of "now" for too short durations (not representable with the time unit configures as `min_unit`).
     /// Setting this to special value `"0"` causes emitting output like "0 days", depending on `min_unit` property.
     /// Note that `Language`'s `too_low` is not used in this case, except of for `"0"`.
@@ -294,7 +293,7 @@ impl <L:Language> Formatter<L> {
         self.too_low = Some(x);
         self
     }
-    
+
     /// Override what is used instead of "old" for too high units.
     /// Note that `Language`'s `too_high` is not used in this case.
     /// ```
@@ -308,7 +307,7 @@ impl <L:Language> Formatter<L> {
         self.too_high = Some(x);
         self
     }
-    
+
     /// Maximum duration before it start giving "old" (or other `too_high` value)
     /// ```
     /// let mut f = timeago::Formatter::new();
@@ -320,8 +319,7 @@ impl <L:Language> Formatter<L> {
         self.max_duration = x;
         self
     }
-    
-    
+
     /// Override what is used instead of "ago".
     /// Empty string literal `""` is a bit special in the space handling.
     /// ```
@@ -337,7 +335,7 @@ impl <L:Language> Formatter<L> {
         self.ago = Some(x);
         self
     }
-    
+
     /// Format the timespan between `from` and `to` as a string like "15 days ago".
     ///
     /// Requires `chrono` Cargo feature.
@@ -356,8 +354,16 @@ impl <L:Language> Formatter<L> {
     /// let to   = chrono::DateTime::parse_from_rfc3339("2013-12-23T17:00:00+03:00").unwrap();
     /// assert_eq!(f.convert_chrono(from, to), "4 days 2 hours ago");
     /// ```
-    #[cfg(feature="chrono")]
-    pub fn convert_chrono<Tz1,Tz2>(&self, from: chrono::DateTime<Tz1>, to: chrono::DateTime<Tz2>) -> String  where Tz1:chrono::TimeZone, Tz2 :chrono::TimeZone {
+    #[cfg(feature = "chrono")]
+    pub fn convert_chrono<Tz1, Tz2>(
+        &self,
+        from: chrono::DateTime<Tz1>,
+        to: chrono::DateTime<Tz2>,
+    ) -> String
+    where
+        Tz1: chrono::TimeZone,
+        Tz2: chrono::TimeZone,
+    {
         let q = to.signed_duration_since(from);
         if let Ok(dur) = q.to_std() {
             self.convert(dur)
@@ -365,7 +371,7 @@ impl <L:Language> Formatter<L> {
             "???".to_owned()
         }
     }
-    
+
     /// Convert specified [`Duration`] to a String representing
     /// approximation of specified timespan as a string like
     /// "5 days ago", with specified by other methods settings.
@@ -379,62 +385,65 @@ impl <L:Language> Formatter<L> {
     /// [`Duration`]:https://doc.rust-lang.org/std/time/struct.Duration.html
     pub fn convert(&self, d: Duration) -> String {
         if d > self.max_duration {
-            return self.too_high.unwrap_or_else(||self.lang.too_high()).to_owned()
+            return self.too_high
+                .unwrap_or_else(|| self.lang.too_high())
+                .to_owned();
         }
-    
+
         let mut ret = self.convert_impl(d, self.num_items);
-        
+
         if ret == "" {
-            let now = self.too_low.unwrap_or_else(||self.lang.too_low());
+            let now = self.too_low.unwrap_or_else(|| self.lang.too_low());
             if now != "0" {
-                return now.to_owned()
+                return now.to_owned();
             } else {
                 ret = format!("0 {}", self.lang.get_word(self.min_unit, 0));
             }
         }
-        
-        let ago = self.ago.unwrap_or_else(||self.lang.ago());
+
+        let ago = self.ago.unwrap_or_else(|| self.lang.ago());
         if ago == "" {
             ret
-        } else if ! self.lang.place_ago_before() {
+        } else if !self.lang.place_ago_before() {
             format!("{} {}", ret, ago)
         } else {
             format!("{} {}", ago, ret)
         }
-        
     }
-    
+
     fn convert_impl(&self, d: Duration, items_left: usize) -> String {
-        if items_left == 0 { return "".to_owned(); }
-        
+        if items_left == 0 {
+            return "".to_owned();
+        }
+
         let mut dtu = dominant_time_unit(d);
-        
+
         while dtu > self.max_unit {
             dtu = dtu.smaller_unit().unwrap();
         }
-        
+
         while dtu < self.min_unit {
             dtu = dtu.bigger_unit().unwrap();
         }
-        
+
         let (x, rem) = split_up(d, dtu);
-        
+
         if x == 0 {
-            return "".to_owned()
+            return "".to_owned();
         }
-        
-        let recurse_result = self.convert_impl(rem, items_left-1);
+
+        let recurse_result = self.convert_impl(rem, items_left - 1);
         if recurse_result == "" {
-            format!("{} {}"   , x, self.lang.get_word(dtu, x))
+            format!("{} {}", x, self.lang.get_word(dtu, x))
         } else {
             format!("{} {} {}", x, self.lang.get_word(dtu, x), recurse_result)
         }
     }
 }
 
-fn dominant_time_unit(d:Duration) -> TimeUnit {
+fn dominant_time_unit(d: Duration) -> TimeUnit {
     use TimeUnit::*;
-    
+
     match d {
         x if x < Microseconds.min_duration() => Nanoseconds ,
         x if x < Milliseconds.min_duration() => Microseconds,
@@ -456,14 +465,14 @@ fn divmod32(a: u32, b: u32) -> (u32, u32) {
     (a / b, a % b)
 }
 
-fn split_up(d:Duration, tu: TimeUnit) -> (u64, Duration) {
+fn split_up(d: Duration, tu: TimeUnit) -> (u64, Duration) {
     let s = d.as_secs();
     let n = d.subsec_nanos();
-    
+
     let tud = tu.min_duration();
     let tus = tud.as_secs();
     let tun = tud.subsec_nanos();
-    
+
     if tus != 0 {
         assert!(tun == 0);
         if s == 0 {
@@ -479,22 +488,20 @@ fn split_up(d:Duration, tu: TimeUnit) -> (u64, Duration) {
             let (c, n2) = divmod32(n, tun);
             (c.into(), Duration::new(0, n2))
         } else {
-            assert!(1_000_000_000 % tun  == 0);
+            assert!(1_000_000_000 % tun == 0);
             let tuninv = 1_000_000_000 / (u64::from(tun));
-            let pieces = s
-                .saturating_mul(tuninv)
-                .saturating_add(u64::from(n / tun));
-            
+            let pieces = s.saturating_mul(tuninv).saturating_add(u64::from(n / tun));
+
             let subtract_s = pieces / tuninv;
             let subtract_ns = ((pieces % tuninv) as u32) * tun;
-            
-            let (mut s,mut n) = (s,n);
-            
+
+            let (mut s, mut n) = (s, n);
+
             if subtract_ns > n {
                 s -= 1;
                 n += 1_000_000_000;
             }
-            
+
             let remain_s = s - subtract_s;
             let remain_ns = n - subtract_ns;
             (pieces, Duration::new(remain_s, remain_ns))
@@ -505,27 +512,27 @@ fn split_up(d:Duration, tu: TimeUnit) -> (u64, Duration) {
 #[cfg(test)]
 mod tests_split_up {
     use super::*;
-    
+
     fn ds(secs: u64) -> Duration {
         Duration::from_secs(secs)
     }
     fn dn(secs: u64, nanos: u32) -> Duration {
         Duration::new(secs, nanos)
     }
-    
+
     #[test]
     fn dominant_time_unit_test() {
         use TimeUnit::*;
-    
+
         assert_eq!(dominant_time_unit(ds(3)), Seconds);
         assert_eq!(dominant_time_unit(ds(60)), Minutes);
         assert_eq!(dominant_time_unit(dn(0, 250_000_000)), Milliseconds);
     }
-    
+
     #[test]
     fn split_up_test_sane() {
         use TimeUnit::*;
-        
+
         assert_eq!(split_up(ds(120), Minutes), (2, ds(0)));
         assert_eq!(split_up(ds(119), Minutes), (1, ds(59)));
         assert_eq!(split_up(ds(60), Minutes), (1, ds(0)));
@@ -543,15 +550,36 @@ mod tests_split_up {
     #[test]
     fn split_up_test_tricky() {
         use TimeUnit::*;
-        
+
         assert_eq!(split_up(ds(3600), Nanoseconds), (3600_000_000_000, ds(0)));
-        assert_eq!(split_up(ds(3600_000), Nanoseconds), (3600_000_000_000_000, ds(0)));
-        assert_eq!(split_up(ds(3600_000_000), Nanoseconds), (3600_000_000_000_000_000, ds(0)));
-        assert_eq!(split_up(ds(3600_000_000_000), Nanoseconds), (std::u64::MAX, dn(3581_553_255_926, 290448385)));
-        assert_eq!(split_up(ds(3600_000_000_000), Microseconds), (3600_000_000_000_000_000, ds(0)));
-        assert_eq!(split_up(ds(3600_000_000_000_000), Microseconds), (std::u64::MAX, dn(3581_553_255_926_290, 448385000)));
-        assert_eq!(split_up(ds(3600_000_000_000_000), Milliseconds), (3600_000_000_000_000_000, ds(0)));
-        assert_eq!(split_up(ds(3600_000_000_000_000_000), Milliseconds), (std::u64::MAX, dn(3581_553_255_926_290_448, 385000000)));
+        assert_eq!(
+            split_up(ds(3600_000), Nanoseconds),
+            (3600_000_000_000_000, ds(0))
+        );
+        assert_eq!(
+            split_up(ds(3600_000_000), Nanoseconds),
+            (3600_000_000_000_000_000, ds(0))
+        );
+        assert_eq!(
+            split_up(ds(3600_000_000_000), Nanoseconds),
+            (std::u64::MAX, dn(3581_553_255_926, 290448385))
+        );
+        assert_eq!(
+            split_up(ds(3600_000_000_000), Microseconds),
+            (3600_000_000_000_000_000, ds(0))
+        );
+        assert_eq!(
+            split_up(ds(3600_000_000_000_000), Microseconds),
+            (std::u64::MAX, dn(3581_553_255_926_290, 448385000))
+        );
+        assert_eq!(
+            split_up(ds(3600_000_000_000_000), Milliseconds),
+            (3600_000_000_000_000_000, ds(0))
+        );
+        assert_eq!(
+            split_up(ds(3600_000_000_000_000_000), Milliseconds),
+            (std::u64::MAX, dn(3581_553_255_926_290_448, 385000000))
+        );
     }
 
 }
@@ -575,8 +603,8 @@ pub fn format_5chars(d: Duration) -> String {
 }
 
 /// Simple formatting style for deprecated `format`.
-#[deprecated(since="0.1.0",note="Use Formatter or format_5chars")]
-#[derive(Copy,Clone)]
+#[deprecated(since = "0.1.0", note = "Use Formatter or format_5chars")]
+#[derive(Copy, Clone)]
 pub enum Style {
     /// Long format, like "2 years ago"
     LONG,
@@ -596,29 +624,28 @@ const S_IN_MNTH: u64 = 2_628_003; // 2628002,88 seconds according to Google
 /// extern crate timeago;
 /// assert_eq!(timeago::format(std::time::Duration::new(3600, 0), timeago::Style::LONG), "1 hour ago");
 /// ```
-#[deprecated(since="0.1.0",note="Use Formatter or format_5chars")]
+#[deprecated(since = "0.1.0", note = "Use Formatter or format_5chars")]
 #[allow(deprecated)]
 pub fn format(d: Duration, style: Style) -> String {
     match style {
-        Style::LONG => {
-            Formatter::new().min_unit(TimeUnit::Nanoseconds).convert(d)
-        }
+        Style::LONG => Formatter::new().min_unit(TimeUnit::Nanoseconds).convert(d),
         Style::HUMAN => {
             let ret = Formatter::new().convert(d);
-            if ret == "now" { "just now".to_owned() } else { ret }
+            if ret == "now" {
+                "just now".to_owned()
+            } else {
+                ret
+            }
         }
-        Style::SHORT => {
-            format_5chars(d)
-        }
+        Style::SHORT => format_5chars(d),
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
     #[allow(deprecated)]
-    use super::{Style, format};
+    use super::{format, Style};
+    use std::time::Duration;
 
     fn dns(secs: u64) -> Duration {
         Duration::from_secs(secs)
@@ -689,4 +716,3 @@ mod tests {
         assert_eq!(fmts(dns(1000_000_000)), "31Yea");
     }
 }
-
