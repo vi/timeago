@@ -1,14 +1,23 @@
 #![deny(missing_docs)]
 //! Given a Duration, lossily format it like in 'N days ago'.
-//! Parsing it back to Duration is not supported yet (See `chrono-english` crate).
+//!
+//! Parsing it back to Duration is not supported yet (See [`chrono-english`] crate).
+//!
 //! Multiple languages are supported though `Language` trait.
 //! Enable `isolang` feature to gain support of getting Language impl from
 //! `lsolang::Language`.
+//!
 //! You can configure minimum and maximum time units, as well as "precision" of
 //! how many items to emit.
+//!
 //! Fractional results like "1.5 days ago" are not supported.
+//!
 //! There is a special simplified version to get compact 5-character representation: `format_5chars`.
-//! Main struct is `Formatter`.
+//!
+//! The main item of timeago is [`Formatter`].
+//!
+//! [`chrono-english`]:https://docs.rs/chrono-english
+//! [`Formatter`]:struct.Formatter.html
 
 use std::time::Duration;
 
@@ -45,12 +54,19 @@ impl<L:Language+?Sized> Language for Box<L> {
     }
 }
 
-/// Natural languages supported out-of-the-box for the formatting.
-/// You can implement a language yourself by deriving the `Language` trait.
-/// You can also choose the language at runtime using the `isolang` cargo feature.
-/// Note: Currently translations expect of English and Russian are not authoritative.
+/// A collection of natural languages supported out-of-the-box for the formatting.
 ///
-/// Require `translations` Cargo feature.
+/// You can implement a language yourself by deriving 
+/// the `Language` trait (pull requests are welcome).
+///
+/// The list of languages is also tracked in `README.md`.
+/// If you spot an error, submit a fix or point it out on [Github issues](https://github.com/vi/timeago/issues/new). If on the other hand you have checked a language and assert that it is done properly, submit a pull request against `README.md` of this project.
+///
+/// You can also choose the language at runtime using the `isolang` cargo feature and [`from_isolang`] function.
+///
+/// Requires `translations` Cargo feature.
+///
+/// [`from_isolang`]:fn.from_isolang.html
 #[cfg(feature="translations")]
 pub mod languages;
 
@@ -87,7 +103,6 @@ pub enum TimeUnit {
 
 impl TimeUnit {
     /// Get `std::time::Duration` corresponding to minimum duration that is representable by this time unit.
-    /// TODO: example
     pub fn min_duration(&self) -> Duration {
         use TimeUnit::*;
         match *self {
@@ -104,7 +119,7 @@ impl TimeUnit {
         }
     }
     
-    /// TODO
+    /// "Upgrade" minutes to hours, hours to days and so on.
     pub fn bigger_unit(&self) -> Option<TimeUnit> {
         use TimeUnit::*;
         match *self {
@@ -121,7 +136,7 @@ impl TimeUnit {
         }
     }
     
-    /// TODO
+    /// "Downgrade" weeks to days, seconds to milliseconds and so on.
     pub fn smaller_unit(&self) -> Option<TimeUnit> {
         use TimeUnit::*;
         match *self {
@@ -158,12 +173,16 @@ pub struct Formatter<L : Language = English>  {
 
 impl Formatter {
     /// Constructor for some default formatting in English
+    ///
+    /// It emits one chunk, limits to seconds and has no maximum duration.
     pub fn new() -> Formatter {
         Formatter::with_language(English)
     }
 }
 impl <L:Language> Formatter<L> {
     /// Constructor for some default formatting with specified language instance
+    ///
+    /// It emits one item (chunk), limits to seconds and has no maximum duration.
     pub fn with_language(l: L) -> Self  {
         Formatter {
             lang: l,
@@ -341,7 +360,7 @@ impl <L:Language> Formatter<L> {
         }
     }
     
-    /// Convert specified `Duration` to a String representing
+    /// Convert specified [`Duration`] to a String representing
     /// approximation of specified timespan as a string like
     /// "5 days ago", with specified by other methods settings.
     /// See module-level doc for more info.
@@ -350,6 +369,8 @@ impl <L:Language> Formatter<L> {
     /// let d = std::time::Duration::from_secs(3600*24);
     /// assert_eq!(f.convert(d), "1 day ago");
     /// ```
+    ///
+    /// [`Duration`]:https://doc.rust-lang.org/std/time/struct.Duration.html
     pub fn convert(&self, d: Duration) -> String {
         if d > self.max_duration {
             return self.too_high.unwrap_or(self.lang.too_high()).to_owned()
@@ -551,7 +572,7 @@ pub fn format_5chars(d: Duration) -> String {
 /// Simple formatting style for deprecated `format`.
 #[deprecated(since="0.1.0",note="Use Formatter or format_5chars")]
 pub enum Style {
-    /// Long format, like "~2 years ago"
+    /// Long format, like "2 years ago"
     LONG,
     /// Human format, like LONG but makes less than 1 second as `just now`
     HUMAN,
