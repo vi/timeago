@@ -57,14 +57,11 @@ impl Language for Belarusian {
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
         if (x % 100) >= 11 && (x % 100) <= 20 {
             self.genitive_plural(tu)
-        } else
-        if x % 10 == 1 {
+        } else  if x % 10 == 1 {
             self.accusative(tu)
-        } else
-        if x % 10 >= 2 && x % 10 <= 4 {
+        } else if x % 10 >= 2 && x % 10 <= 4 {
             self.genitive(tu)
-        } else
-        if x % 10 >= 5 || x % 10 == 0 {
+        } else if x % 10 >= 5 || x % 10 == 0 {
             self.genitive_plural(tu)
         } else {
             unreachable!()

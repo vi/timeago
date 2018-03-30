@@ -108,7 +108,7 @@ impl TimeUnit {
         match *self {
             Nanoseconds => Duration::new(0, 1),
             Microseconds => Duration::new(0, 1000),
-            Milliseconds => Duration::new(0, 1000_000),
+            Milliseconds => Duration::new(0, 1_000_000),
             Seconds => Duration::new(1, 0),
             Minutes => Duration::new(60,0),
             Hours => Duration::new(60*60, 0),
@@ -169,6 +169,12 @@ pub struct Formatter<L : Language = English>  {
     too_high: Option<&'static str>,
     ago: Option<&'static str>,
     max_duration: Duration,
+}
+
+impl Default for Formatter {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Formatter {
@@ -373,13 +379,13 @@ impl <L:Language> Formatter<L> {
     /// [`Duration`]:https://doc.rust-lang.org/std/time/struct.Duration.html
     pub fn convert(&self, d: Duration) -> String {
         if d > self.max_duration {
-            return self.too_high.unwrap_or(self.lang.too_high()).to_owned()
+            return self.too_high.unwrap_or_else(||self.lang.too_high()).to_owned()
         }
     
         let mut ret = self.convert_impl(d, self.num_items);
         
         if ret == "" {
-            let now = self.too_low.unwrap_or(self.lang.too_low());
+            let now = self.too_low.unwrap_or_else(||self.lang.too_low());
             if now != "0" {
                 return now.to_owned()
             } else {
@@ -387,16 +393,15 @@ impl <L:Language> Formatter<L> {
             }
         }
         
-        let ago = self.ago.unwrap_or(self.lang.ago());
+        let ago = self.ago.unwrap_or_else(||self.lang.ago());
         if ago == "" {
             ret
+        } else if ! self.lang.place_ago_before() {
+            format!("{} {}", ret, ago)
         } else {
-            if ! self.lang.place_ago_before() {
-                format!("{} {}", ret, ago)
-            } else {
-                format!("{} {}", ago, ret)
-            }
+            format!("{} {}", ago, ret)
         }
+        
     }
     
     fn convert_impl(&self, d: Duration, items_left: usize) -> String {
@@ -474,11 +479,11 @@ fn split_up(d:Duration, tu: TimeUnit) -> (u64, Duration) {
             let (c, n2) = divmod32(n, tun);
             (c.into(), Duration::new(0, n2))
         } else {
-            assert!(1000_000_000 % tun  == 0);
-            let tuninv = 1000_000_000 / (tun as u64);
+            assert!(1_000_000_000 % tun  == 0);
+            let tuninv = 1_000_000_000 / (u64::from(tun));
             let pieces = s
                 .saturating_mul(tuninv)
-                .saturating_add( (n / tun) as u64);
+                .saturating_add(u64::from(n / tun));
             
             let subtract_s = pieces / tuninv;
             let subtract_ns = ((pieces % tuninv) as u32) * tun;
@@ -487,7 +492,7 @@ fn split_up(d:Duration, tu: TimeUnit) -> (u64, Duration) {
             
             if subtract_ns > n {
                 s -= 1;
-                n += 1000_000_000;
+                n += 1_000_000_000;
             }
             
             let remain_s = s - subtract_s;
@@ -571,6 +576,7 @@ pub fn format_5chars(d: Duration) -> String {
 
 /// Simple formatting style for deprecated `format`.
 #[deprecated(since="0.1.0",note="Use Formatter or format_5chars")]
+#[derive(Copy,Clone)]
 pub enum Style {
     /// Long format, like "2 years ago"
     LONG,
@@ -580,7 +586,7 @@ pub enum Style {
     SHORT,
 }
 
-const S_IN_MNTH: u64 = 2628003; // 2628002,88 seconds according to Google
+const S_IN_MNTH: u64 = 2_628_003; // 2628002,88 seconds according to Google
 
 /// Do the formatting. See `Style`'s docstring for formatting options.
 /// If you need just simple mode without bloated featureful implementation,
