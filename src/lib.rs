@@ -46,6 +46,7 @@ pub trait Language {
     }
 }
 
+#[cfg_attr(rustfmt, rustfmt_skip)]
 impl<L:Language+?Sized> Language for Box<L> {
     fn too_low(&self) -> &'static str   { (**self).too_low() }
     fn too_high(&self) -> &'static str  { (**self).too_high() }
@@ -119,6 +120,7 @@ impl TimeUnit {
     }
 
     /// "Upgrade" minutes to hours, hours to days and so on.
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     pub fn bigger_unit(&self) -> Option<TimeUnit> {
         use TimeUnit::*;
         match *self {
@@ -136,6 +138,7 @@ impl TimeUnit {
     }
 
     /// "Downgrade" weeks to days, seconds to milliseconds and so on.
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     pub fn smaller_unit(&self) -> Option<TimeUnit> {
         use TimeUnit::*;
         match *self {
@@ -441,6 +444,7 @@ impl<L: Language> Formatter<L> {
     }
 }
 
+#[cfg_attr(rustfmt, rustfmt_skip)]
 fn dominant_time_unit(d: Duration) -> TimeUnit {
     use TimeUnit::*;
 

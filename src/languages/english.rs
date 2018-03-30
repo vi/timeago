@@ -1,3 +1,4 @@
+#![cfg_attr(rustfmt, rustfmt_skip)]
 use super::super::{Language, TimeUnit};
 
 /// Default language for timeago

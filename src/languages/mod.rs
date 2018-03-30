@@ -1,4 +1,5 @@
 #![allow(missing_docs)]
+#![cfg_attr(rustfmt, rustfmt_skip)]
 
 #[cfg(feature = "isolang")]
 extern crate isolang;
