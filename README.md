@@ -3,6 +3,8 @@ In Rust, format Duration into string like "1 hour ago" or "01hou".
 
 Currently it does not [take the calendar into account](https://github.com/vi/timeago/issues/12) and assumes each month is about 30.4 days long.
 
+Parsing such string back to a `Duration` is out of scope for this crate. Maybe see the [`chrono-english`](https://docs.rs/chrono-english) crate instead.
+
 ## API
 
 [Documentation link](https://docs.rs/timeago/)
