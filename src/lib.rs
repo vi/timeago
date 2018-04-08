@@ -62,13 +62,14 @@ impl<L:Language+?Sized> Language for Box<L> {
 /// the `Language` trait (pull requests are welcome).
 ///
 /// The list of languages is also tracked in `README.md`.
-/// If you spot an error, submit a fix or point it out on [Github issues](https://github.com/vi/timeago/issues/new). If on the other hand you have checked a language and assert that it is done properly, submit a pull request against `README.md` of this project.
+/// If you spot an error, submit a fix or point it out on [Github issues](https://github.com/vi/timeago/issues/new). If on the other hand you have checked a language and assert that it is done properly, [submit a pull request against `README.md` of this project][er].
 ///
 /// You can also choose the language at runtime using the `isolang` cargo feature and [`from_isolang`] function.
 ///
 /// Requires `translations` Cargo feature.
 ///
 /// [`from_isolang`]:fn.from_isolang.html
+/// [er]:https://github.com/vi/timeago/edit/master/README.md
 #[cfg(feature = "translations")]
 pub mod languages;
 
