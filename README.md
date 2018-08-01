@@ -65,3 +65,7 @@ $ cargo run --features isolang en
 7200
 2 hours ago
 ```
+
+# See also
+
+* [chrono-humanize](https://docs.rs/crate/chrono-humanize)
