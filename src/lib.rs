@@ -51,6 +51,7 @@ impl<L:Language+?Sized> Language for Box<L> {
     fn too_low(&self) -> &'static str   { (**self).too_low() }
     fn too_high(&self) -> &'static str  { (**self).too_high() }
     fn ago(&self) -> &'static str       { (**self).ago() }
+    fn place_ago_before(&self) -> bool  { (**self).place_ago_before() }
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str  { 
         (**self).get_word(tu, x)
     }
