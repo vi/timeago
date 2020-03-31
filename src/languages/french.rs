@@ -4,7 +4,7 @@ use super::super::{Language, TimeUnit};
 pub struct French;
 impl Language for French {
     fn too_low (&self) -> &'static str { "maintenant" }
-    fn too_high(&self) -> &'static str { "récemment" }
+    fn too_high(&self) -> &'static str { "ancien" }
     fn ago(&self)      -> &'static str { "il y a" }
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
         use TimeUnit::*;
