@@ -41,6 +41,7 @@ A `Language` can be constructed from [isolang::Language](https://docs.rs/isolang
 * English
 * Russian
 * Spanish
+* French
 * German (unchecked)
 * Belarusian (unchecked)
 * Polish (unchecked)
@@ -49,7 +50,6 @@ A `Language` can be constructed from [isolang::Language](https://docs.rs/isolang
 * Swedish (contributed)
 * Turkish (contributed)
 * Japanese (contributed)
-* French (contributed)
 
 If you checked some language and certify that it's allright, submit a pull request that removes "(unchecked)" or "(contributed)" in the list above.
 
