@@ -13,7 +13,7 @@ impl Language for French {
                 Nanoseconds   =>  "nanoseconde",
                 Microseconds  =>  "microseconde",
                 Milliseconds  =>  "milliseconde",
-                Seconds       =>  "second",
+                Seconds       =>  "seconde",
                 Minutes       =>  "minute",
                 Hours         =>  "heure",
                 Days          =>  "jour",
