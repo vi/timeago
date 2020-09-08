@@ -70,3 +70,4 @@ $ cargo run --features isolang en
 # See also
 
 * [chrono-humanize](https://docs.rs/crate/chrono-humanize)
+* compound_duration - split `Duration` into weeks/days/minues/etc. parts
