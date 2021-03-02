@@ -27,7 +27,7 @@ extern crate chrono;
 /// Interface for connecting natural languages to use for the formatting
 /// See "language" module documentation for details.
 #[allow(missing_docs)]
-pub trait Language {
+pub trait Language : dyn_clone::DynClone {
     /// What to emit by default if value is too high
     fn too_low(&self) -> &'static str;
 
@@ -43,17 +43,6 @@ pub trait Language {
     /// For German and such
     fn place_ago_before(&self) -> bool {
         false
-    }
-}
-
-#[cfg_attr(rustfmt, rustfmt_skip)]
-impl<L:Language+?Sized> Language for Box<L> {
-    fn too_low(&self) -> &'static str   { (**self).too_low() }
-    fn too_high(&self) -> &'static str  { (**self).too_high() }
-    fn ago(&self) -> &'static str       { (**self).ago() }
-    fn place_ago_before(&self) -> bool  { (**self).place_ago_before() }
-    fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str  { 
-        (**self).get_word(tu, x)
     }
 }
 
@@ -166,13 +155,7 @@ impl TimeUnit {
 /// ```
 pub struct Formatter<L: Language = English> {
     lang: L,
-    num_items: usize,
-    min_unit: TimeUnit,
-    max_unit: TimeUnit,
-    too_low: Option<&'static str>,
-    too_high: Option<&'static str>,
-    ago: Option<&'static str>,
-    max_duration: Duration,
+    _subformatter: DynamicFormatter,
 }
 
 impl Default for Formatter {
@@ -195,14 +178,8 @@ impl<L: Language> Formatter<L> {
     /// It emits one item (chunk), limits to seconds and has no maximum duration.
     pub fn with_language(l: L) -> Self {
         Formatter {
-            lang: l,
-            num_items: 1,
-            min_unit: TimeUnit::Seconds,
-            max_unit: TimeUnit::Years,
-            too_low: None,
-            too_high: None,
-            ago: None,
-            max_duration: Duration::new(std::u64::MAX, 999_999_999),
+            lang: dyn_clone::clone(&l),
+            _subformatter: DynamicFormatter::with_language(dyn_clone::clone_box(&l)),
         }
     }
 
@@ -221,8 +198,7 @@ impl<L: Language> Formatter<L> {
     /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds ago");
     /// ```
     pub fn num_items(&mut self, x: usize) -> &mut Self {
-        assert!(x > 0);
-        self.num_items = x;
+        self._subformatter.num_items(x);
         self
     }
 
@@ -241,7 +217,7 @@ impl<L: Language> Formatter<L> {
     /// assert_eq!(f.convert(d), "720 hours ago");
     /// ```
     pub fn max_unit(&mut self, x: TimeUnit) -> &mut Self {
-        self.max_unit = x;
+        self._subformatter.max_unit(x);
         self
     }
 
@@ -268,7 +244,7 @@ impl<L: Language> Formatter<L> {
     /// assert_eq!(f.convert(d), "now");
     /// ```
     pub fn min_unit(&mut self, x: TimeUnit) -> &mut Self {
-        self.min_unit = x;
+        self._subformatter.min_unit(x);
         self
     }
 
@@ -295,7 +271,7 @@ impl<L: Language> Formatter<L> {
     /// assert_eq!(f.convert(d), "0 minutes ago");
     /// ```
     pub fn too_low(&mut self, x: &'static str) -> &mut Self {
-        self.too_low = Some(x);
+        self._subformatter.too_low(x);
         self
     }
 
@@ -309,7 +285,7 @@ impl<L: Language> Formatter<L> {
     /// assert_eq!(f.convert(d), "ancient");
     /// ```
     pub fn too_high(&mut self, x: &'static str) -> &mut Self {
-        self.too_high = Some(x);
+        self._subformatter.too_high(x);
         self
     }
 
@@ -321,7 +297,7 @@ impl<L: Language> Formatter<L> {
     /// assert_eq!(f.convert(d), "old");
     /// ```
     pub fn max_duration(&mut self, x: Duration) -> &mut Self {
-        self.max_duration = x;
+        self._subformatter.max_duration(x);
         self
     }
 
@@ -337,7 +313,7 @@ impl<L: Language> Formatter<L> {
     /// assert_eq!(f.convert(d), "1 minute");
     /// ```
     pub fn ago(&mut self, x: &'static str) -> &mut Self {
-        self.ago = Some(x);
+        self._subformatter.ago(x);
         self
     }
 
@@ -369,6 +345,236 @@ impl<L: Language> Formatter<L> {
         Tz1: chrono::TimeZone,
         Tz2: chrono::TimeZone,
     {
+        self._subformatter.convert_chrono(from, to)
+    }
+
+    /// Convert specified [`Duration`] to a String representing
+    /// approximation of specified timespan as a string like
+    /// "5 days ago", with specified by other methods settings.
+    /// See module-level doc for more info.
+    /// ```
+    /// let f = timeago::Formatter::new();
+    /// let d = std::time::Duration::from_secs(3600*24);
+    /// assert_eq!(f.convert(d), "1 day ago");
+    /// ```
+    ///
+    /// [`Duration`]:https://doc.rust-lang.org/std/time/struct.Duration.html
+    pub fn convert(&self, d: Duration) -> String {
+        self._subformatter.convert(d)
+    }
+}
+
+/// Formatter struct constructed with runtime language. Build it with new() and maybe modify some options, then use convert.
+/// ```
+/// let f = timeago::DynamicFormatter::new();
+/// let d = std::time::Duration::from_secs(3600);
+/// assert_eq!(f.convert(d), "1 hour ago");
+/// ```
+pub struct DynamicFormatter {
+    lang: Box<dyn Language>,
+    num_items: usize,
+    min_unit: TimeUnit,
+    max_unit: TimeUnit,
+    too_low: Option<&'static str>,
+    too_high: Option<&'static str>,
+    ago: Option<&'static str>,
+    max_duration: Duration,
+}
+
+impl Default for DynamicFormatter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl DynamicFormatter {
+    /// Constructor for some default formatting in English
+    ///
+    /// It emits one chunk, limits to seconds and has no maximum duration.
+    pub fn new() -> Self {
+        Self::with_language(Box::new(English))
+    }
+}
+impl DynamicFormatter {
+    /// Constructor for some default formatting with specified language instance
+    ///
+    /// It emits one item (chunk), limits to seconds and has no maximum duration.
+    pub fn with_language(l: Box<dyn Language>) -> Self {
+        Self {
+            lang: dyn_clone::clone_box(&*l),
+            num_items: 1,
+            min_unit: TimeUnit::Seconds,
+            max_unit: TimeUnit::Years,
+            too_low: None,
+            too_high: None,
+            ago: None,
+            max_duration: Duration::new(std::u64::MAX, 999_999_999),
+        }
+    }
+
+    /// Set number of time unit items to emit (for example, 1 item is for "1 year"; 3 items is for "1 year 3 months 17 days"). Zero chunks like "0 minutes" are not emitted, expect of at the end if `too_low` is `"0"`.
+    /// Default is 1.
+    /// ```
+    /// let mut f = timeago::DynamicFormatter::new();
+    /// f.num_items(1);
+    /// let d = std::time::Duration::from_secs(3600+60+3);
+    /// assert_eq!(f.convert(d), "1 hour ago");
+    /// f.num_items(2);
+    /// assert_eq!(f.convert(d), "1 hour 1 minute ago");
+    /// f.num_items(3);
+    /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds ago");
+    /// f.num_items(4);
+    /// assert_eq!(f.convert(d), "1 hour 1 minute 3 seconds ago");
+    /// ```
+    pub fn num_items(&mut self, x: usize) -> &mut Self {
+        assert!(x > 0);
+        self.num_items = x;
+        self
+    }
+
+    /// Set maximum used unit. Not to be confused with `max_duration`.
+    /// Should not affect appearance of "old" or other `too_high` values.
+    /// ```
+    /// let mut f = timeago::DynamicFormatter::new();
+    /// f.max_unit(timeago::TimeUnit::Hours);
+    /// let d = std::time::Duration::from_secs(60);
+    /// assert_eq!(f.convert(d), "1 minute ago");
+    /// let d = std::time::Duration::from_secs(3600);
+    /// assert_eq!(f.convert(d), "1 hour ago");
+    /// let d = std::time::Duration::from_secs(24*3600);
+    /// assert_eq!(f.convert(d), "24 hours ago");
+    /// let d = std::time::Duration::from_secs(30*24*3600);
+    /// assert_eq!(f.convert(d), "720 hours ago");
+    /// ```
+    pub fn max_unit(&mut self, x: TimeUnit) -> &mut Self {
+        self.max_unit = x;
+        self
+    }
+
+    /// Set minimum used unit. Durations below minimally representable by that unit emit `too_low` value like "now", or like "0 days" instead of normal output.
+    /// When `num_items` > 1, it also acts as precision limiter.
+    /// ```
+    /// let mut f = timeago::DynamicFormatter::new();
+    /// f.min_unit(timeago::TimeUnit::Minutes);
+    /// let d = std::time::Duration::from_secs(30);
+    /// assert_eq!(f.convert(d), "now");
+    /// let d = std::time::Duration::from_secs(90);
+    /// assert_eq!(f.convert(d), "1 minute ago");
+    /// ```
+    /// ```
+    /// let mut f = timeago::DynamicFormatter::new();
+    /// f.num_items(99);
+    /// let d = std::time::Duration::new(1*3600*24 + 2*3600 + 3*60 + 4, 500_000_000);
+    /// assert_eq!(f.convert(d), "1 day 2 hours 3 minutes 4 seconds ago");
+    /// f.min_unit(timeago::TimeUnit::Hours);
+    /// assert_eq!(f.convert(d), "1 day 2 hours ago");
+    /// f.min_unit(timeago::TimeUnit::Microseconds);
+    /// assert_eq!(f.convert(d), "1 day 2 hours 3 minutes 4 seconds 500 milliseconds ago");
+    /// f.min_unit(timeago::TimeUnit::Months);
+    /// assert_eq!(f.convert(d), "now");
+    /// ```
+    pub fn min_unit(&mut self, x: TimeUnit) -> &mut Self {
+        self.min_unit = x;
+        self
+    }
+
+    /// Override what is used instead of "now" for too short durations (not representable with the time unit configures as `min_unit`).
+    /// Setting this to special value `"0"` causes emitting output like "0 days", depending on `min_unit` property.
+    /// Note that `Language`'s `too_low` is not used in this case, except of for `"0"`.
+    /// ```
+    /// let mut f = timeago::DynamicFormatter::new();
+    /// f.min_unit(timeago::TimeUnit::Months)
+    ///  .too_low("this month");
+    /// let d = std::time::Duration::from_secs(24*3600);
+    /// assert_eq!(f.convert(d), "this month");
+    /// ```
+    /// ```
+    /// let mut f = timeago::DynamicFormatter::new();
+    /// f.min_unit(timeago::TimeUnit::Minutes);
+    /// let d = std::time::Duration::from_secs(30);
+    /// assert_eq!(f.convert(d), "now");
+    /// f.too_low("-");
+    /// assert_eq!(f.convert(d), "-");
+    /// f.too_low("");
+    /// assert_eq!(f.convert(d), "");
+    /// f.too_low("0");
+    /// assert_eq!(f.convert(d), "0 minutes ago");
+    /// ```
+    pub fn too_low(&mut self, x: &'static str) -> &mut Self {
+        self.too_low = Some(x);
+        self
+    }
+
+    /// Override what is used instead of "old" for too high units.
+    /// Note that `Language`'s `too_high` is not used in this case.
+    /// ```
+    /// let mut f = timeago::DynamicFormatter::new();
+    /// f.max_duration(std::time::Duration::from_secs(3600*24*30));
+    /// f.too_high("ancient");
+    /// let d = std::time::Duration::from_secs(1000_000_000_000);
+    /// assert_eq!(f.convert(d), "ancient");
+    /// ```
+    pub fn too_high(&mut self, x: &'static str) -> &mut Self {
+        self.too_high = Some(x);
+        self
+    }
+
+    /// Maximum duration before it start giving "old" (or other `too_high` value)
+    /// ```
+    /// let mut f = timeago::DynamicFormatter::new();
+    /// f.max_duration(std::time::Duration::new(3600*24*30, 0));
+    /// let d = std::time::Duration::from_secs(1000_000_000);
+    /// assert_eq!(f.convert(d), "old");
+    /// ```
+    pub fn max_duration(&mut self, x: Duration) -> &mut Self {
+        self.max_duration = x;
+        self
+    }
+
+    /// Override what is used instead of "ago".
+    /// Empty string literal `""` is a bit special in the space handling.
+    /// ```
+    /// let mut f = timeago::DynamicFormatter::new();
+    /// let d = std::time::Duration::from_secs(60);
+    /// assert_eq!(f.convert(d), "1 minute ago");
+    /// f.ago("later");
+    /// assert_eq!(f.convert(d), "1 minute later");
+    /// f.ago("");
+    /// assert_eq!(f.convert(d), "1 minute");
+    /// ```
+    pub fn ago(&mut self, x: &'static str) -> &mut Self {
+        self.ago = Some(x);
+        self
+    }
+
+    /// Format the timespan between `from` and `to` as a string like "15 days ago".
+    ///
+    /// Requires `chrono` Cargo feature.
+    ///
+    /// `from` should come before `to`, otherwise `"???"` will be returned.
+    ///
+    /// Currently it doesn't actually take the calendar into account and just converts datetimes
+    /// into a plain old `std::time::Duration`, but in future here may be a proper implementation.
+    ///
+    /// ```
+    /// extern crate chrono;
+    /// extern crate timeago;
+    /// let mut f = timeago::DynamicFormatter::new();
+    /// f.num_items(2);
+    /// let from = chrono::DateTime::parse_from_rfc3339("2013-12-19T15:00:00+03:00").unwrap();
+    /// let to   = chrono::DateTime::parse_from_rfc3339("2013-12-23T17:00:00+03:00").unwrap();
+    /// assert_eq!(f.convert_chrono(from, to), "4 days 2 hours ago");
+    /// ```
+    #[cfg(feature = "chrono")]
+    pub fn convert_chrono<Tz1, Tz2>(
+        &self,
+        from: chrono::DateTime<Tz1>,
+        to: chrono::DateTime<Tz2>,
+    ) -> String
+    where
+        Tz1: chrono::TimeZone,
+        Tz2: chrono::TimeZone,
+    {
         let q = to.signed_duration_since(from);
         if let Ok(dur) = q.to_std() {
             self.convert(dur)
@@ -382,7 +588,7 @@ impl<L: Language> Formatter<L> {
     /// "5 days ago", with specified by other methods settings.
     /// See module-level doc for more info.
     /// ```
-    /// let f = timeago::Formatter::new();
+    /// let f = timeago::DynamicFormatter::new();
     /// let d = std::time::Duration::from_secs(3600*24);
     /// assert_eq!(f.convert(d), "1 day ago");
     /// ```

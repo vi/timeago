@@ -2,7 +2,7 @@
 use super::super::{Language, TimeUnit};
 
 /// Default language for timeago
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct English;
 impl Language for English {
     fn too_low (&self) -> &'static str { "now" }

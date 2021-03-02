@@ -19,11 +19,6 @@ pub mod french;
 pub mod spanish;
 pub mod danish;
 
-/// Helper function to make a language dynamically dispatched
-pub fn boxup<L: super::Language + 'static>(x: L) -> Box<super::Language> {
-    Box::new(x) as Box<super::Language>
-}
-
 /// A public use for a public dependency.
 #[cfg(feature = "isolang")]
 pub use self::isolang::Language as IsolangLanguage;
@@ -41,22 +36,22 @@ pub use self::isolang::Language as IsolangLanguage;
 /// assert_eq!(f.convert(d), "1 час назад");
 /// ```
 #[cfg(feature = "isolang")]
-pub fn from_isolang(x: isolang::Language) -> Option<Box<super::Language>> {
+pub fn from_isolang(x: isolang::Language) -> Option<Box<dyn super::Language>> {
     Some(match x {
-        x if x.to_name() == "English"    => boxup(english::English),
-        x if x.to_name() == "Chinese"    => boxup(chinese::Chinese),
-        x if x.to_name() == "Japanese"   => boxup(japanese::Japanese),
-        x if x.to_name() == "Russian"    => boxup(russian::Russian),
-        x if x.to_name() == "German"     => boxup(german::German),
-        x if x.to_name() == "Belarusian" => boxup(belarusian::Belarusian),
-        x if x.to_name() == "Polish"     => boxup(polish::Polish),
-        x if x.to_name() == "Swedish"    => boxup(swedish::Swedish),
-        x if x.to_name() == "Romanian"   => boxup(romanian::Romanian),
-        x if x.to_name() == "Turkish"    => boxup(turkish::Turkish),
-        x if x.to_name() == "French"     => boxup(french::French),
-        x if x.to_name() == "Spanish"    => boxup(spanish::Spanish),
-        x if x.to_name() == "Danish"     => boxup(danish::Danish),
-        x if x.to_name() == "Portuguese" => boxup(portuguese::Portuguese),
+        x if x.to_name() == "English"    => Box::new(english::English),
+        x if x.to_name() == "Chinese"    => Box::new(chinese::Chinese),
+        x if x.to_name() == "Japanese"   => Box::new(japanese::Japanese),
+        x if x.to_name() == "Russian"    => Box::new(russian::Russian),
+        x if x.to_name() == "German"     => Box::new(german::German),
+        x if x.to_name() == "Belarusian" => Box::new(belarusian::Belarusian),
+        x if x.to_name() == "Polish"     => Box::new(polish::Polish),
+        x if x.to_name() == "Swedish"    => Box::new(swedish::Swedish),
+        x if x.to_name() == "Romanian"   => Box::new(romanian::Romanian),
+        x if x.to_name() == "Turkish"    => Box::new(turkish::Turkish),
+        x if x.to_name() == "French"     => Box::new(french::French),
+        x if x.to_name() == "Spanish"    => Box::new(spanish::Spanish),
+        x if x.to_name() == "Danish"     => Box::new(danish::Danish),
+        x if x.to_name() == "Portuguese" => Box::new(portuguese::Portuguese),
         _ => return None,
     })
 }

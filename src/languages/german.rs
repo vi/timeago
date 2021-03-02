@@ -1,6 +1,6 @@
 use super::super::{Language, TimeUnit};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct German;
 impl Language for German {
     fn too_low (&self) -> &'static str { "jetzt" }

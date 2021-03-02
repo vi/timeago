@@ -1,6 +1,6 @@
 use super::super::{Language, TimeUnit};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Romanian;
 impl Language for Romanian {
     fn too_low (&self) -> &'static str { "acum" }

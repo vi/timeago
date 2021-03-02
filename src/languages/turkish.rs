@@ -1,7 +1,7 @@
 use super::super::{Language, TimeUnit};
 
 /// Default language for timeago
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Turkish;
 impl Language for Turkish {
     fn too_low (&self) -> &'static str { "şimdi" }

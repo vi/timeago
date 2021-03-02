@@ -1,6 +1,6 @@
 use super::super::{Language, TimeUnit};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Japanese;
 impl Language for Japanese {
     fn too_low(&self) -> &'static str {

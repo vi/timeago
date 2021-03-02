@@ -1,6 +1,6 @@
 use super::super::{Language, TimeUnit};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Chinese;
 impl Language for Chinese {
     fn too_low (&self) -> &'static str { "刚刚" }

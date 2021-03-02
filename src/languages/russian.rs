@@ -1,6 +1,6 @@
 use super::super::{Language, TimeUnit};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Russian;
 impl Russian {
     fn accusative(&self, tu: TimeUnit) -> &'static str {

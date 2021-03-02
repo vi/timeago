@@ -1,6 +1,6 @@
 use super::super::{Language, TimeUnit};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Swedish;
 impl Language for Swedish {
     fn too_low (&self) -> &'static str { "nu" }

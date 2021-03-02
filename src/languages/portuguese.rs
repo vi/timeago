@@ -1,7 +1,7 @@
 #![cfg_attr(rustfmt, rustfmt_skip)]
 use super::super::{Language, TimeUnit};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Portuguese;
 impl Language for Portuguese {
     fn too_low (&self) -> &'static str { "agora" }
