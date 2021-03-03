@@ -5,6 +5,7 @@ use super::super::{Language, TimeUnit};
 #[derive(Default)]
 pub struct English;
 impl Language for English {
+    fn clone_boxed(&self) -> super::super::BoxedLanguage { Box::new(Self{}) }
     fn too_low (&self) -> &'static str { "now" }
     fn too_high(&self) -> &'static str { "old" }
     fn ago(&self)      -> &'static str { "ago" }

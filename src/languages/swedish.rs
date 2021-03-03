@@ -3,6 +3,7 @@ use super::super::{Language, TimeUnit};
 #[derive(Default)]
 pub struct Swedish;
 impl Language for Swedish {
+    fn clone_boxed(&self) -> super::super::BoxedLanguage { Box::new(Self{}) }
     fn too_low (&self) -> &'static str { "nu" }
     fn too_high(&self) -> &'static str { "gammal" }
     fn ago(&self)      -> &'static str { "sedan" }

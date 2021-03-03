@@ -3,6 +3,7 @@ use super::super::{Language, TimeUnit};
 #[derive(Default)]
 pub struct German;
 impl Language for German {
+    fn clone_boxed(&self) -> super::super::BoxedLanguage { Box::new(Self{}) }
     fn too_low (&self) -> &'static str { "jetzt" }
     fn too_high(&self) -> &'static str { "zu alt" }
     fn ago(&self)      -> &'static str { "vor" }

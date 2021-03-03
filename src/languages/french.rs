@@ -3,6 +3,7 @@ use super::super::{Language, TimeUnit};
 #[derive(Default)]
 pub struct French;
 impl Language for French {
+    fn clone_boxed(&self) -> super::super::BoxedLanguage { Box::new(Self{}) }
     fn too_low (&self) -> &'static str { "maintenant" }
     fn too_high(&self) -> &'static str { "ancien" }
     fn ago(&self)      -> &'static str { "il y a" }

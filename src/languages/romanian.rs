@@ -3,6 +3,7 @@ use super::super::{Language, TimeUnit};
 #[derive(Default)]
 pub struct Romanian;
 impl Language for Romanian {
+    fn clone_boxed(&self) -> super::super::BoxedLanguage { Box::new(Self{}) }
     fn too_low (&self) -> &'static str { "acum" }
     fn too_high(&self) -> &'static str { "demult" }
     fn ago(&self)      -> &'static str { "acum" }

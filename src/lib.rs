@@ -44,10 +44,14 @@ pub trait Language {
     fn place_ago_before(&self) -> bool {
         false
     }
+
+    /// Make a dynamic copy of this language
+    fn clone_boxed(&self) -> BoxedLanguage;
 }
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
-impl<L:Language+?Sized> Language for Box<L> {
+impl Language for BoxedLanguage {
+    fn clone_boxed(&self) -> BoxedLanguage { (**self).clone_boxed() }
     fn too_low(&self) -> &'static str   { (**self).too_low() }
     fn too_high(&self) -> &'static str  { (**self).too_high() }
     fn ago(&self) -> &'static str       { (**self).ago() }
@@ -56,6 +60,9 @@ impl<L:Language+?Sized> Language for Box<L> {
         (**self).get_word(tu, x)
     }
 }
+
+/// Dynamic version of the `Language` trait
+pub type BoxedLanguage = Box<Language + Send + Sync + 'static>;
 
 /// A collection of natural languages supported out-of-the-box for the formatting.
 ///
@@ -189,6 +196,22 @@ impl Formatter {
         Formatter::with_language(English)
     }
 }
+
+impl Clone for Formatter<BoxedLanguage> {
+    fn clone(&self) -> Formatter<BoxedLanguage> {
+        Formatter {
+            lang: self.lang.clone_boxed(),
+            num_items: self.num_items,
+            min_unit: self.min_unit,
+            max_unit: self.max_unit,
+            too_low: self.too_low,
+            too_high: self.too_high,
+            ago: self.ago,
+            max_duration: self.max_duration,
+        }
+    }
+}
+
 impl<L: Language> Formatter<L> {
     /// Constructor for some default formatting with specified language instance
     ///

@@ -51,6 +51,7 @@ impl Belarusian {
 }
 
 impl Language for Belarusian {
+    fn clone_boxed(&self) -> super::super::BoxedLanguage { Box::new(Self{}) }
     fn too_low (&self) -> &'static str { "зараз" }
     fn too_high(&self) -> &'static str { "даўно" }
     fn ago(&self)      -> &'static str { "таму" }

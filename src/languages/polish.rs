@@ -50,6 +50,7 @@ impl Polish {
     }
 }
 impl Language for Polish {
+    fn clone_boxed(&self) -> super::super::BoxedLanguage { Box::new(Self{}) }
     fn too_low (&self) -> &'static str { "teraz" }
     fn too_high(&self) -> &'static str { "dawno" }
     fn ago(&self)      -> &'static str { "temu" }

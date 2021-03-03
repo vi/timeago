@@ -3,6 +3,7 @@ use super::super::{Language, TimeUnit};
 #[derive(Default)]
 pub struct Chinese;
 impl Language for Chinese {
+    fn clone_boxed(&self) -> super::super::BoxedLanguage { Box::new(Self{}) }
     fn too_low (&self) -> &'static str { "刚刚" }
     fn too_high(&self) -> &'static str { "大于" }
     fn ago(&self)      -> &'static str { "之前" }

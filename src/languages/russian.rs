@@ -50,6 +50,7 @@ impl Russian {
     }
 }
 impl Language for Russian {
+    fn clone_boxed(&self) -> super::super::BoxedLanguage { Box::new(Self{}) }
     fn too_low (&self) -> &'static str { "сейчас" }
     fn too_high(&self) -> &'static str { "давно" }
     fn ago(&self)      -> &'static str { "назад" }

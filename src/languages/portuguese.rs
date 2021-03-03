@@ -4,6 +4,7 @@ use super::super::{Language, TimeUnit};
 #[derive(Default)]
 pub struct Portuguese;
 impl Language for Portuguese {
+    fn clone_boxed(&self) -> super::super::BoxedLanguage { Box::new(Self{}) }
     fn too_low (&self) -> &'static str { "agora" }
     fn too_high(&self) -> &'static str { "antigo" }
     fn ago(&self)      -> &'static str { "atrás" }
