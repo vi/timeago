@@ -154,7 +154,7 @@ impl TimeUnit {
 /// assert_eq!(f.convert(d), "1 hour ago");
 /// ```
 pub struct Formatter<L: Language = English> {
-    lang: L,
+    _lang: L,
     _subformatter: DynamicFormatter,
 }
 
@@ -176,9 +176,11 @@ impl<L: Language> Formatter<L> {
     /// Constructor for some default formatting with specified language instance
     ///
     /// It emits one item (chunk), limits to seconds and has no maximum duration.
-    pub fn with_language(l: L) -> Self {
+    pub fn with_language(l: L) -> Self
+        where L: 'static
+    {
         Formatter {
-            lang: dyn_clone::clone(&l),
+            _lang: dyn_clone::clone(&l),
             _subformatter: DynamicFormatter::with_language(dyn_clone::clone_box(&l)),
         }
     }

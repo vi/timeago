@@ -23,7 +23,7 @@ Then feed unsigned numbers (seconds) into it.
         }
         l = timeago::English;
     }
-    let mut f = timeago::Formatter::with_language(l);
+    let mut f = timeago::DynamicFormatter::with_language(l);
     f.num_items(3);
 
     let si1 = std::io::stdin();
