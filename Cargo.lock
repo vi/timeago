@@ -224,7 +224,7 @@ dependencies = [
 
 [[package]]
 name = "timeago"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "chrono 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "isolang 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -1,6 +1,6 @@
 [package]
 name = "timeago"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Vitaly _Vi Shukela <vi0oss@gmail.com>"]
 license = "MIT/Apache-2.0"
 description = "Given a Duration, lossily format it like in 'N days ago'. Parsing it back to Duration is not supported yet."
