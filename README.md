@@ -41,6 +41,7 @@ A `Language` can be constructed from [isolang::Language](https://docs.rs/isolang
 * English
 * Russian
 * French
+* Portuguese
 * German (unchecked)
 * Belarusian (unchecked)
 * Polish (unchecked)
