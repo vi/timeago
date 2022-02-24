@@ -52,6 +52,7 @@ A `Language` can be constructed from [isolang::Language](https://docs.rs/isolang
 * Turkish (contributed)
 * Japanese (contributed)
 * Danish (contributed)
+* Italian (contributed)
 
 If you checked some language and certify that it's allright, submit a pull request that removes "(unchecked)" or "(contributed)" in the list above.
 
