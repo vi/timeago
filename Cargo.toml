@@ -1,6 +1,6 @@
 [package]
 name = "timeago"
-version = "0.3.1"
+version = "0.4.0"
 authors = ["Vitaly _Vi Shukela <vi0oss@gmail.com>"]
 license = "MIT/Apache-2.0"
 description = "Given a Duration, lossily format it like in 'N days ago'. Parsing it back to Duration is not supported yet."
@@ -9,7 +9,7 @@ documentation = "https://docs.rs/timeago/"
 readme = "README.md"
 
 [dependencies]
-isolang={version="1", optional=true}
+isolang={version="2", optional=true}
 chrono={version="0.4", optional=true}
 
 [features]
