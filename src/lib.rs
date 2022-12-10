@@ -62,7 +62,7 @@ impl Language for BoxedLanguage {
 }
 
 /// Dynamic version of the `Language` trait
-pub type BoxedLanguage = Box<Language + Send + Sync + 'static>;
+pub type BoxedLanguage = Box<dyn Language + Send + Sync + 'static>;
 
 /// A collection of natural languages supported out-of-the-box for the formatting.
 ///
