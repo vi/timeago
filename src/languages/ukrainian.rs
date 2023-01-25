@@ -30,7 +30,7 @@ impl Ukrainian {
             Days          =>  "дня",
             Weeks         =>  "тижня",
             Months        =>  "місяця",
-            Years         =>  "року",
+            Years         =>  "роки",
         }
     }
     fn genitive_plural(&self, tu: TimeUnit) -> &'static str {
@@ -55,7 +55,6 @@ impl Language for Ukrainian {
     fn too_high(&self) -> &'static str { "давно" }
     fn ago(&self)      -> &'static str { "тому" }
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
-        //if (11..=20).contains(x) {
         if (x % 100) >= 11 && (x % 100) <= 20 {
             self.genitive_plural(tu)
         } else if x % 10 == 1 {
@@ -79,7 +78,7 @@ fn test() {
     assert_eq!(f.convert(Duration::from_secs(2)), "2 секунди тому");
     assert_eq!(f.convert(Duration::from_secs(5)), "5 секунд тому");
     assert_eq!(f.convert(Duration::from_secs(12)), "12 секунд тому");
-    assert_eq!(f.convert(Duration::from_secs(1*3600*12*366)), "6 месяців назад");
+    assert_eq!(f.convert(Duration::from_secs(1*3600*12*366)), "6 місяців тому");
     assert_eq!(f.convert(Duration::from_secs(1*3600*24*366)), "1 рік тому");
     assert_eq!(f.convert(Duration::from_secs(2*3600*24*366)), "2 роки тому");
     assert_eq!(f.convert(Duration::from_secs(4*3600*24*366)), "4 роки тому");
@@ -91,7 +90,7 @@ fn test() {
     assert_eq!(f.convert(Duration::from_secs(19*3600*24*366)), "19 років тому");
     assert_eq!(f.convert(Duration::from_secs(20*3600*24*366)), "20 років тому");
     assert_eq!(f.convert(Duration::from_secs(21*3600*24*366)), "21 рік тому");
-    assert_eq!(f.convert(Duration::from_secs(32*3600*24*366)), "32 року тому");
+    assert_eq!(f.convert(Duration::from_secs(32*3600*24*366)), "32 роки тому");
     assert_eq!(f.convert(Duration::from_secs(99*3600*24*366)), "99 років тому");
     assert_eq!(f.convert(Duration::from_secs(100*3600*24*366)), "100 років тому");
     assert_eq!(f.convert(Duration::from_secs(101*3600*24*366)), "101 рік тому");
