@@ -20,6 +20,7 @@ pub mod spanish;
 pub mod danish;
 pub mod italian;
 pub mod ukrainian;
+pub mod thai;
 
 /// Helper function to make a language dynamically dispatched
 pub fn boxup<L: super::Language + Send + Sync + 'static>(x: L) -> super::BoxedLanguage {
