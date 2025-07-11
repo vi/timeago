@@ -11,8 +11,8 @@ impl Language for Thai {
     fn too_high(&self) -> &'static str { "นานมาแล้ว" }  // "old"
     fn ago(&self) -> &'static str { "ที่แล้ว" }         // "ago"
 
-    fn prefix_space_ago(&self) -> bool {
-        false
+    fn prefix_space_ago(&self) -> &str {
+        ""
     }
     
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {

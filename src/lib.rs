@@ -45,8 +45,8 @@ pub trait Language {
         false
     }
     /// For Thai and such
-    fn prefix_space_ago(&self) -> bool {
-        true
+    fn prefix_space_ago(&self) -> &str {
+        " "
     }
 
     /// Make a dynamic copy of this language
@@ -60,7 +60,7 @@ impl Language for BoxedLanguage {
     fn too_high(&self) -> &'static str  { (**self).too_high() }
     fn ago(&self) -> &'static str       { (**self).ago() }
     fn place_ago_before(&self) -> bool  { (**self).place_ago_before() }
-    fn prefix_space_ago(&self) -> bool { (**self).prefix_space_ago() }
+    fn prefix_space_ago(&self) -> &str { (**self).prefix_space_ago() }
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str  { 
         (**self).get_word(tu, x)
     }
@@ -442,12 +442,7 @@ impl<L: Language> Formatter<L> {
         } else if self.lang.place_ago_before() {
             format!("{} {}", ago, ret)
         } else {
-            let space = if self.lang.prefix_space_ago() {
-                " "
-            } else {
-                ""
-            };
-            format!("{}{}{}", ret, space, ago)
+            format!("{}{}{}", ret, self.lang.prefix_space_ago(), ago)
         }
     }
 
