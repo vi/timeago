@@ -45,7 +45,7 @@ pub trait Language {
         false
     }
     /// For Thai and such
-    fn prefix_space_ago(&self) -> &str {
+    fn extra_space(&self) -> &str {
         " "
     }
 
@@ -60,7 +60,7 @@ impl Language for BoxedLanguage {
     fn too_high(&self) -> &'static str  { (**self).too_high() }
     fn ago(&self) -> &'static str       { (**self).ago() }
     fn place_ago_before(&self) -> bool  { (**self).place_ago_before() }
-    fn prefix_space_ago(&self) -> &str { (**self).prefix_space_ago() }
+    fn extra_space(&self) -> &str { (**self).extra_space() }
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str  { 
         (**self).get_word(tu, x)
     }
@@ -442,7 +442,7 @@ impl<L: Language> Formatter<L> {
         } else if self.lang.place_ago_before() {
             format!("{} {}", ago, ret)
         } else {
-            format!("{}{}{}", ret, self.lang.prefix_space_ago(), ago)
+            format!("{}{}{}", ret, self.lang.extra_space(), ago)
         }
     }
 

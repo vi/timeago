@@ -11,7 +11,7 @@ impl Language for Thai {
     fn too_high(&self) -> &'static str { "นานมาแล้ว" }  // "old"
     fn ago(&self) -> &'static str { "ที่แล้ว" }         // "ago"
 
-    fn prefix_space_ago(&self) -> &str {
+    fn extra_space(&self) -> &str {
         ""
     }
     
