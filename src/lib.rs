@@ -440,7 +440,7 @@ impl<L: Language> Formatter<L> {
         if ago.is_empty() {
             ret
         } else if self.lang.place_ago_before() {
-            format!("{} {}", ago, ret)
+            format!("{}{}{}", ago, self.lang.extra_space(), ret)
         } else {
             format!("{}{}{}", ret, self.lang.extra_space(), ago)
         }

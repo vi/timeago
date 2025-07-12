@@ -45,7 +45,6 @@ pub use self::isolang::Language as IsolangLanguage;
 /// ```
 #[cfg(feature = "isolang")]
 pub fn from_isolang(x: isolang::Language) -> Option<super::BoxedLanguage> {
-    println!("x {}",x.to_name());
     
     Some(match x {
         x if x.to_name() == "English"    => boxup(english::English),
