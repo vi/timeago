@@ -44,6 +44,10 @@ pub trait Language {
     fn place_ago_before(&self) -> bool {
         false
     }
+    /// For Thai and such
+    fn extra_space(&self) -> &str {
+        " "
+    }
 
     /// Make a dynamic copy of this language
     fn clone_boxed(&self) -> BoxedLanguage;
@@ -56,6 +60,7 @@ impl Language for BoxedLanguage {
     fn too_high(&self) -> &'static str  { (**self).too_high() }
     fn ago(&self) -> &'static str       { (**self).ago() }
     fn place_ago_before(&self) -> bool  { (**self).place_ago_before() }
+    fn extra_space(&self) -> &str { (**self).extra_space() }
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str  { 
         (**self).get_word(tu, x)
     }
@@ -413,14 +418,15 @@ impl<L: Language> Formatter<L> {
     /// [`Duration`]:https://doc.rust-lang.org/std/time/struct.Duration.html
     pub fn convert(&self, d: Duration) -> String {
         if d > self.max_duration {
-            return self.too_high
+            return self
+                .too_high
                 .unwrap_or_else(|| self.lang.too_high())
                 .to_owned();
         }
 
         let mut ret = self.convert_impl(d, self.num_items);
 
-        if ret == "" {
+        if ret.is_empty() {
             let now = self.too_low.unwrap_or_else(|| self.lang.too_low());
             if now != "0" {
                 return now.to_owned();
@@ -430,12 +436,13 @@ impl<L: Language> Formatter<L> {
         }
 
         let ago = self.ago.unwrap_or_else(|| self.lang.ago());
-        if ago == "" {
+
+        if ago.is_empty() {
             ret
-        } else if !self.lang.place_ago_before() {
-            format!("{} {}", ret, ago)
+        } else if self.lang.place_ago_before() {
+            format!("{}{}{}", ago, self.lang.extra_space(), ret)
         } else {
-            format!("{} {}", ago, ret)
+            format!("{}{}{}", ret, self.lang.extra_space(), ago)
         }
     }
 
@@ -610,7 +617,6 @@ mod tests_split_up {
             (std::u64::MAX, dn(3581_553_255_926_290_448, 385000000))
         );
     }
-
 }
 
 /// A simplified formatter, resulting in short strings like "02Yea" or " now " or "07min".

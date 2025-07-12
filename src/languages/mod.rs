@@ -20,6 +20,7 @@ pub mod spanish;
 pub mod danish;
 pub mod italian;
 pub mod ukrainian;
+pub mod thai;
 
 /// Helper function to make a language dynamically dispatched
 pub fn boxup<L: super::Language + Send + Sync + 'static>(x: L) -> super::BoxedLanguage {
@@ -44,6 +45,7 @@ pub use self::isolang::Language as IsolangLanguage;
 /// ```
 #[cfg(feature = "isolang")]
 pub fn from_isolang(x: isolang::Language) -> Option<super::BoxedLanguage> {
+    
     Some(match x {
         x if x.to_name() == "English"    => boxup(english::English),
         x if x.to_name() == "Chinese"    => boxup(chinese::Chinese),
@@ -61,6 +63,7 @@ pub fn from_isolang(x: isolang::Language) -> Option<super::BoxedLanguage> {
         x if x.to_name() == "Portuguese" => boxup(portuguese::Portuguese),
         x if x.to_name() == "Italian"    => boxup(italian::Italian),
         x if x.to_name() == "Ukrainian"  => boxup(ukrainian::Ukrainian),
+        x if x.to_name() == "Thai"  => boxup(thai::Thai),
         _ => return None,
     })
 }
