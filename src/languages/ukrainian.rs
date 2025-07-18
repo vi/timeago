@@ -72,7 +72,7 @@ impl Language for Ukrainian {
             self.accusative(tu)
         } else if (2..=4).contains(&last) {
             self.genitive(tu)
-        } else if (5..=9).contains(&last) || last.is_multiple_of(10) {
+        } else if (5..=9).contains(&last) || last == 0 {
             self.genitive_plural(tu)
         } else {
             unreachable!()

@@ -532,7 +532,7 @@ fn split_up(d: Duration, tu: TimeUnit) -> (u64, Duration) {
             let (c, n2) = divmod32(n, tun);
             (c.into(), Duration::new(0, n2))
         } else {
-            assert!(1_000_000_000_u32.is_multiple_of(tun));
+            assert!(1_000_000_000_u32 % tun == 0);
             let tuninv = 1_000_000_000 / (u64::from(tun));
             let pieces = s.saturating_mul(tuninv).saturating_add(u64::from(n / tun));
 
