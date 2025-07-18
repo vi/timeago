@@ -1,7 +1,8 @@
 [package]
 name = "timeago"
 version = "0.5.0"
-edition = "2024"
+edition = "2021"
+rust-version = "1.56"
 authors = ["Vitaly _Vi Shukela <vi0oss@gmail.com>"]
 license = "MIT OR Apache-2.0"
 description = "Given a Duration, lossily format it like in 'N days ago'. Parsing it back to Duration is not supported yet."
