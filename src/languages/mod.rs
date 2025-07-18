@@ -4,6 +4,7 @@
 #[cfg(feature = "isolang")]
 extern crate isolang;
 
+pub mod basque;
 pub mod belarusian;
 pub mod chinese;
 pub mod english;

@@ -48,6 +48,10 @@ pub trait Language {
     fn extra_space(&self) -> &str {
         " "
     }
+    /// For basque and such
+    fn place_unit_before(&self, _: u64) -> bool {
+        false
+    }
 
     /// Make a dynamic copy of this language
     fn clone_boxed(&self) -> BoxedLanguage;
@@ -468,10 +472,17 @@ impl<L: Language> Formatter<L> {
         }
 
         let recurse_result = self.convert_impl(rem, items_left - 1);
-        if recurse_result == "" {
-            format!("{} {}", x, self.lang.get_word(dtu, x))
+
+        let result = if self.lang.place_unit_before(x) {
+            format!("{} {x}", self.lang.get_word(dtu, x))
         } else {
-            format!("{} {} {}", x, self.lang.get_word(dtu, x), recurse_result)
+            format!("{x} {}", self.lang.get_word(dtu, x))
+        };
+
+        if recurse_result.is_empty() {
+            result
+        } else {
+            format!("{result} {recurse_result}") // Append the recurse result
         }
     }
 }
