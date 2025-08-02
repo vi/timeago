@@ -57,21 +57,32 @@ pub trait Language {
     fn clone_boxed(&self) -> BoxedLanguage;
 }
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
 impl Language for BoxedLanguage {
-    fn clone_boxed(&self) -> BoxedLanguage { (**self).clone_boxed() }
-    fn too_low(&self) -> &'static str   { (**self).too_low() }
-    fn too_high(&self) -> &'static str  { (**self).too_high() }
-    fn ago(&self) -> &'static str       { (**self).ago() }
-    fn place_ago_before(&self) -> bool  { (**self).place_ago_before() }
-    fn extra_space(&self) -> &str { (**self).extra_space() }
-    fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str  { 
+    fn clone_boxed(&self) -> BoxedLanguage {
+        (**self).clone_boxed()
+    }
+    fn too_low(&self) -> &'static str {
+        (**self).too_low()
+    }
+    fn too_high(&self) -> &'static str {
+        (**self).too_high()
+    }
+    fn ago(&self) -> &'static str {
+        (**self).ago()
+    }
+    fn place_ago_before(&self) -> bool {
+        (**self).place_ago_before()
+    }
+    fn extra_space(&self) -> &str {
+        (**self).extra_space()
+    }
+    fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
         (**self).get_word(tu, x)
     }
 }
 
 /// Dynamic version of the `Language` trait
-pub type BoxedLanguage = Box<Language + Send + Sync + 'static>;
+pub type BoxedLanguage = Box<dyn Language + Send + Sync + 'static>;
 
 /// A collection of natural languages supported out-of-the-box for the formatting.
 ///
@@ -138,38 +149,36 @@ impl TimeUnit {
     }
 
     /// "Upgrade" minutes to hours, hours to days and so on.
-    #[cfg_attr(rustfmt, rustfmt_skip)]
     pub fn bigger_unit(&self) -> Option<TimeUnit> {
         use TimeUnit::*;
         match *self {
-            Nanoseconds  => Some(Microseconds),
+            Nanoseconds => Some(Microseconds),
             Microseconds => Some(Milliseconds),
-            Milliseconds => Some(Seconds     ),
-            Seconds      => Some(Minutes     ),
-            Minutes      => Some(Hours       ),
-            Hours        => Some(Days        ),
-            Days         => Some(Weeks       ),
-            Weeks        => Some(Months      ),
-            Months       => Some(Years       ),
-            Years        => None,
+            Milliseconds => Some(Seconds),
+            Seconds => Some(Minutes),
+            Minutes => Some(Hours),
+            Hours => Some(Days),
+            Days => Some(Weeks),
+            Weeks => Some(Months),
+            Months => Some(Years),
+            Years => None,
         }
     }
 
     /// "Downgrade" weeks to days, seconds to milliseconds and so on.
-    #[cfg_attr(rustfmt, rustfmt_skip)]
     pub fn smaller_unit(&self) -> Option<TimeUnit> {
         use TimeUnit::*;
         match *self {
-            Nanoseconds  => None,
-            Microseconds => Some(Nanoseconds ),
+            Nanoseconds => None,
+            Microseconds => Some(Nanoseconds),
             Milliseconds => Some(Microseconds),
-            Seconds      => Some(Milliseconds),
-            Minutes      => Some(Seconds     ),
-            Hours        => Some(Minutes     ),
-            Days         => Some(Hours       ),
-            Weeks        => Some(Days        ),
-            Months       => Some(Weeks       ),
-            Years        => Some(Months      ),
+            Seconds => Some(Milliseconds),
+            Minutes => Some(Seconds),
+            Hours => Some(Minutes),
+            Days => Some(Hours),
+            Weeks => Some(Days),
+            Months => Some(Weeks),
+            Years => Some(Months),
         }
     }
 }
@@ -234,7 +243,7 @@ impl<L: Language> Formatter<L> {
             too_low: None,
             too_high: None,
             ago: None,
-            max_duration: Duration::new(std::u64::MAX, 999_999_999),
+            max_duration: Duration::new(u64::MAX, 999_999_999),
         }
     }
 
@@ -487,20 +496,19 @@ impl<L: Language> Formatter<L> {
     }
 }
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
 fn dominant_time_unit(d: Duration) -> TimeUnit {
     use TimeUnit::*;
 
     match d {
-        x if x < Microseconds.min_duration() => Nanoseconds ,
+        x if x < Microseconds.min_duration() => Nanoseconds,
         x if x < Milliseconds.min_duration() => Microseconds,
-        x if x < Seconds     .min_duration() => Milliseconds,
-        x if x < Minutes     .min_duration() => Seconds     ,
-        x if x < Hours       .min_duration() => Minutes     ,
-        x if x < Days        .min_duration() => Hours       ,
-        x if x < Weeks       .min_duration() => Days        ,
-        x if x < Months      .min_duration() => Weeks       ,
-        x if x < Years       .min_duration() => Months      ,
+        x if x < Seconds.min_duration() => Milliseconds,
+        x if x < Minutes.min_duration() => Seconds,
+        x if x < Hours.min_duration() => Minutes,
+        x if x < Days.min_duration() => Hours,
+        x if x < Weeks.min_duration() => Days,
+        x if x < Months.min_duration() => Weeks,
+        x if x < Years.min_duration() => Months,
         _ => Years,
     }
 }
@@ -535,7 +543,7 @@ fn split_up(d: Duration, tu: TimeUnit) -> (u64, Duration) {
             let (c, n2) = divmod32(n, tun);
             (c.into(), Duration::new(0, n2))
         } else {
-            assert!(1_000_000_000 % tun == 0);
+            assert!(1_000_000_000_u32 % tun == 0);
             let tuninv = 1_000_000_000 / (u64::from(tun));
             let pieces = s.saturating_mul(tuninv).saturating_add(u64::from(n / tun));
 
@@ -636,13 +644,13 @@ pub fn format_5chars(d: Duration) -> String {
     let s = d.as_secs();
     match s {
         0 => " now ".into(),
-        x if x > 0 && x < 60 => format!("{:02}sec", x),
-        x if x >= 60 && x < 60 * 60 => format!("{:02}min", x / 60),
-        x if x >= 60 * 60 && x < 60 * 60 * 24 => format!("{:02}hou", x / 60 / 60),
-        x if x >= 60 * 60 * 24 && x < S_IN_MNTH => format!("{:02}day", x / 60 / 60 / 24),
-        x if x >= S_IN_MNTH && x < 12 * S_IN_MNTH => format!("{:02}Mon", x / S_IN_MNTH),
-        x if x >= 12 * S_IN_MNTH && x <= 99 * 12 * S_IN_MNTH => {
-            format!("{:02}Yea", x / 12 / S_IN_MNTH)
+        x if (1..60).contains(&x) => format!("{x:02}sec"),
+        x if (60..3600).contains(&x) => format!("{:02}min", x / 60),
+        x if (3600..86400).contains(&x) => format!("{:02}hou", x / 3600),
+        x if (86400..S_IN_MNTH).contains(&x) => format!("{:02}day", x / 86400),
+        x if (S_IN_MNTH..(12 * S_IN_MNTH)).contains(&x) => format!("{:02}Mon", x / S_IN_MNTH),
+        x if ((12 * S_IN_MNTH)..=(99 * 12 * S_IN_MNTH)).contains(&x) => {
+            format!("{:02}Yea", x / (12 * S_IN_MNTH))
         }
         _ => " OLD ".into(),
     }
