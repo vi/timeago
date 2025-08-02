@@ -45,7 +45,7 @@ pub trait Language {
         false
     }
     /// For Thai and such
-    fn extra_space(&self) -> &str {
+    fn override_space_near_ago(&self) -> &str {
         " "
     }
     /// For basque and such
@@ -73,8 +73,8 @@ impl Language for BoxedLanguage {
     fn place_ago_before(&self) -> bool {
         (**self).place_ago_before()
     }
-    fn extra_space(&self) -> &str {
-        (**self).extra_space()
+    fn override_space_near_ago(&self) -> &str {
+        (**self).override_space_near_ago()
     }
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
         (**self).get_word(tu, x)
@@ -453,9 +453,9 @@ impl<L: Language> Formatter<L> {
         if ago.is_empty() {
             ret
         } else if self.lang.place_ago_before() {
-            format!("{}{}{}", ago, self.lang.extra_space(), ret)
+            format!("{}{}{}", ago, self.lang.override_space_near_ago(), ret)
         } else {
-            format!("{}{}{}", ret, self.lang.extra_space(), ago)
+            format!("{}{}{}", ret, self.lang.override_space_near_ago(), ago)
         }
     }
 
@@ -482,16 +482,13 @@ impl<L: Language> Formatter<L> {
 
         let recurse_result = self.convert_impl(rem, items_left - 1);
 
-        let result = if self.lang.place_unit_before(x) {
-            format!("{} {x}", self.lang.get_word(dtu, x))
-        } else {
-            format!("{x} {}", self.lang.get_word(dtu, x))
-        };
+        let word = self.lang.get_word(dtu, x);
 
-        if recurse_result.is_empty() {
-            result
-        } else {
-            format!("{result} {recurse_result}") // Append the recurse result
+        match (self.lang.place_unit_before(x), recurse_result.is_empty()) {
+            (true, true) => format!("{word} {x}"),
+            (true, false) => format!("{word} {x} {recurse_result}"),
+            (false, true) => format!("{x} {word}"),
+            (false, false) => format!("{x} {word} {recurse_result}"),
         }
     }
 }

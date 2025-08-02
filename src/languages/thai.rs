@@ -15,7 +15,7 @@ impl Language for Thai {
     fn ago(&self) -> &'static str {
         "ที่แล้ว"
     }
-    fn extra_space(&self) -> &str {
+    fn override_space_near_ago(&self) -> &str {
         ""
     }
     fn get_word(&self, tu: TimeUnit, _: u64) -> &'static str {
