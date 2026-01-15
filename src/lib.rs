@@ -76,14 +76,23 @@ impl Language for BoxedLanguage {
     fn ago(&self) -> &'static str {
         (**self).ago()
     }
+    fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
+        (**self).get_word(tu, x)
+    }
     fn place_ago_before(&self) -> bool {
         (**self).place_ago_before()
     }
     fn override_space_near_ago(&self) -> &str {
         (**self).override_space_near_ago()
     }
-    fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
-        (**self).get_word(tu, x)
+    fn place_unit_before(&self, x: u64) -> bool {
+        (**self).place_unit_before(x)
+    }
+    fn between_chunks(&self) -> &str {
+        (**self).between_chunks()
+    }
+    fn between_value_and_word(&self) -> &str {
+        (**self).between_value_and_word()
     }
 }
 

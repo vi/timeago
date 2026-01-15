@@ -41,40 +41,45 @@ impl Language for Korean {
 fn test() {
     use super::super::Formatter;
     use std::time::Duration;
-    let mut f = Formatter::with_language(Korean);
-    f.min_unit(TimeUnit::Seconds);
-    assert_eq!(f.convert(Duration::from_secs(0)), "방금");
-    assert_eq!(f.convert(Duration::from_nanos(42)), "방금");
-    assert_eq!(f.convert(Duration::from_micros(42)), "방금");
-    assert_eq!(f.convert(Duration::from_millis(42)), "방금");
-    assert_eq!(f.convert(Duration::from_secs(42)), "42초 전");
-    assert_eq!(f.convert(Duration::from_mins(42)), "42분 전");
-    assert_eq!(f.convert(Duration::from_hours(2)), "2시간 전");
-    assert_eq!(f.convert(Duration::from_hours(23)), "23시간 전");
-    assert_eq!(f.convert(Duration::from_hours(24)), "1일 전");
-    assert_eq!(f.convert(Duration::from_hours(24 + 1)), "1일 전");
-    assert_eq!(f.convert(Duration::from_hours(2 * 24 - 1)), "1일 전");
-    assert_eq!(f.convert(Duration::from_hours(2 * 24)), "2일 전");
-    assert_eq!(f.convert(Duration::from_hours(2 * 24 + 1)), "2일 전");
-    assert_eq!(f.convert(Duration::from_hours(3 * 24 - 1)), "2일 전");
-    assert_eq!(f.convert(Duration::from_hours(3 * 24)), "3일 전");
-    assert_eq!(f.convert(Duration::from_hours(3 * 24 + 1)), "3일 전");
-    assert_eq!(f.convert(Duration::from_hours(42 * 24)), "1개월 전");
-    assert_eq!(f.convert(Duration::from_hours(364 * 24)), "11개월 전");
-    assert_eq!(f.convert(Duration::from_hours(365 * 24)), "11개월 전");
-    assert_eq!(f.convert(Duration::from_hours(366 * 24)), "1년 전");
-    assert_eq!(f.convert(Duration::from_hours(42 * 366 * 24)), "42년 전");
+    
+    fn test_with_formatter<L: Language>(mut f: Formatter<L>) {
+        f.min_unit(TimeUnit::Seconds);
+        assert_eq!(f.convert(Duration::from_secs(0)), "방금");
+        assert_eq!(f.convert(Duration::from_nanos(42)), "방금");
+        assert_eq!(f.convert(Duration::from_micros(42)), "방금");
+        assert_eq!(f.convert(Duration::from_millis(42)), "방금");
+        assert_eq!(f.convert(Duration::from_secs(42)), "42초 전");
+        assert_eq!(f.convert(Duration::from_mins(42)), "42분 전");
+        assert_eq!(f.convert(Duration::from_hours(2)), "2시간 전");
+        assert_eq!(f.convert(Duration::from_hours(23)), "23시간 전");
+        assert_eq!(f.convert(Duration::from_hours(24)), "1일 전");
+        assert_eq!(f.convert(Duration::from_hours(24 + 1)), "1일 전");
+        assert_eq!(f.convert(Duration::from_hours(2 * 24 - 1)), "1일 전");
+        assert_eq!(f.convert(Duration::from_hours(2 * 24)), "2일 전");
+        assert_eq!(f.convert(Duration::from_hours(2 * 24 + 1)), "2일 전");
+        assert_eq!(f.convert(Duration::from_hours(3 * 24 - 1)), "2일 전");
+        assert_eq!(f.convert(Duration::from_hours(3 * 24)), "3일 전");
+        assert_eq!(f.convert(Duration::from_hours(3 * 24 + 1)), "3일 전");
+        assert_eq!(f.convert(Duration::from_hours(42 * 24)), "1개월 전");
+        assert_eq!(f.convert(Duration::from_hours(364 * 24)), "11개월 전");
+        assert_eq!(f.convert(Duration::from_hours(365 * 24)), "11개월 전");
+        assert_eq!(f.convert(Duration::from_hours(366 * 24)), "1년 전");
+        assert_eq!(f.convert(Duration::from_hours(42 * 366 * 24)), "42년 전");
 
-    f.min_unit(TimeUnit::Nanoseconds);
-    assert_eq!(f.convert(Duration::from_nanos(42)), "42나노초 전");
-    assert_eq!(f.convert(Duration::from_micros(42)), "42마이크로초 전");
-    assert_eq!(f.convert(Duration::from_millis(42)), "42밀리초 전");
+        f.min_unit(TimeUnit::Nanoseconds);
+        assert_eq!(f.convert(Duration::from_nanos(42)), "42나노초 전");
+        assert_eq!(f.convert(Duration::from_micros(42)), "42마이크로초 전");
+        assert_eq!(f.convert(Duration::from_millis(42)), "42밀리초 전");
 
-    f.max_unit(TimeUnit::Months);
-    assert_eq!(f.convert(Duration::from_hours(365 * 24)), "11개월 전");
-    assert_eq!(f.convert(Duration::from_hours(366 * 24)), "12개월 전");
+        f.max_unit(TimeUnit::Months);
+        assert_eq!(f.convert(Duration::from_hours(365 * 24)), "11개월 전");
+        assert_eq!(f.convert(Duration::from_hours(366 * 24)), "12개월 전");
 
-    f.max_duration(Duration::from_hours(365 * 24));
-    assert_eq!(f.convert(Duration::from_hours(365 * 24)), "11개월 전");
-    assert_eq!(f.convert(Duration::from_hours(366 * 24)), "오래전");
+        f.max_duration(Duration::from_hours(365 * 24));
+        assert_eq!(f.convert(Duration::from_hours(365 * 24)), "11개월 전");
+        assert_eq!(f.convert(Duration::from_hours(366 * 24)), "오래전");
+    }
+
+    test_with_formatter(Formatter::with_language(Korean));
+    test_with_formatter(Formatter::with_language(Korean.clone_boxed()));
 }
