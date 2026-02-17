@@ -1,6 +1,6 @@
 ## v0.6.0 (2026-02-17)
 
-* Add Basque
+* Add Basque and Korean
 * MSRV bump and some unverified revamps
 
 ## v0.5.0 (2025-07-12)

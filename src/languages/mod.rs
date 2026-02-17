@@ -12,6 +12,7 @@ pub mod french;
 pub mod german;
 pub mod italian;
 pub mod japanese;
+pub mod korean;
 pub mod polish;
 pub mod portuguese;
 pub mod romanian;
@@ -63,6 +64,7 @@ pub fn from_isolang(x: isolang::Language) -> Option<super::BoxedLanguage> {
         x if x.to_name() == "Italian" => boxup(italian::Italian),
         x if x.to_name() == "Ukrainian" => boxup(ukrainian::Ukrainian),
         x if x.to_name() == "Thai" => boxup(thai::Thai),
+        x if x.to_name() == "Korean" => boxup(korean::Korean),
         _ => return None,
     })
 }

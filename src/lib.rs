@@ -52,6 +52,12 @@ pub trait Language {
     fn place_unit_before(&self, _: u64) -> bool {
         false
     }
+    fn between_chunks(&self) -> &str {
+        " "
+    }
+    fn between_value_and_word(&self) -> &str {
+        " "
+    }
 
     /// Make a dynamic copy of this language
     fn clone_boxed(&self) -> BoxedLanguage;
@@ -70,14 +76,23 @@ impl Language for BoxedLanguage {
     fn ago(&self) -> &'static str {
         (**self).ago()
     }
+    fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
+        (**self).get_word(tu, x)
+    }
     fn place_ago_before(&self) -> bool {
         (**self).place_ago_before()
     }
     fn override_space_near_ago(&self) -> &str {
         (**self).override_space_near_ago()
     }
-    fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
-        (**self).get_word(tu, x)
+    fn place_unit_before(&self, x: u64) -> bool {
+        (**self).place_unit_before(x)
+    }
+    fn between_chunks(&self) -> &str {
+        (**self).between_chunks()
+    }
+    fn between_value_and_word(&self) -> &str {
+        (**self).between_value_and_word()
     }
 }
 
@@ -444,7 +459,11 @@ impl<L: Language> Formatter<L> {
             if now != "0" {
                 return now.to_owned();
             } else {
-                ret = format!("0 {}", self.lang.get_word(self.min_unit, 0));
+                ret = format!(
+                    "0{}{}",
+                    self.lang.between_value_and_word(),
+                    self.lang.get_word(self.min_unit, 0)
+                );
             }
         }
 
@@ -483,12 +502,14 @@ impl<L: Language> Formatter<L> {
         let recurse_result = self.convert_impl(rem, items_left - 1);
 
         let word = self.lang.get_word(dtu, x);
+        let between = self.lang.between_value_and_word();
+        let between_chunk = self.lang.between_chunks();
 
         match (self.lang.place_unit_before(x), recurse_result.is_empty()) {
-            (true, true) => format!("{word} {x}"),
-            (true, false) => format!("{word} {x} {recurse_result}"),
-            (false, true) => format!("{x} {word}"),
-            (false, false) => format!("{x} {word} {recurse_result}"),
+            (true, true) => format!("{word}{between}{x}"),
+            (true, false) => format!("{word}{between}{x}{between_chunk}{recurse_result}"),
+            (false, true) => format!("{x}{between}{word}"),
+            (false, false) => format!("{x}{between}{word}{between_chunk}{recurse_result}"),
         }
     }
 }
