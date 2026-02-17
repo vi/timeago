@@ -5,7 +5,7 @@ Currently it does not [take the calendar into account](https://github.com/vi/tim
 
 Parsing such string back to a `Duration` is out of scope for this crate. Maybe see the [`chrono-english`](https://docs.rs/chrono-english) crate instead.
 
-With `isolang` feature off, it supports Rust from version 1.24.
+With `isolang` feature off, version `0.5.0` of the crate supported Rust from version 1.24.
 
 ## API
 
