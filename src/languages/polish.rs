@@ -15,7 +15,7 @@ impl Polish {
             Days => "dzień",
             Weeks => "tydzień",
             Months => "miesiąc",
-            Years => "lat",
+            Years => "rok",
         }
     }
     fn genitive(&self, tu: TimeUnit) -> &'static str {
@@ -63,22 +63,19 @@ impl Language for Polish {
         "temu"
     }
     fn get_word(&self, tu: TimeUnit, x: u64) -> &'static str {
-        if tu == TimeUnit::Years && x == 1 {
-            return "rok";
+        // Unlike Russian, Polish uses the singular only for exactly 1:
+        // "21 minut", not "21 minutę".
+        if x == 1 {
+            return self.accusative(tu);
         }
 
         let last_two = x % 100;
         let last = x % 10;
 
-        if (11..=20).contains(&last_two) {
-            self.genitive_plural(tu)
+        if (2..=4).contains(&last) && !(12..=14).contains(&last_two) {
+            self.genitive(tu)
         } else {
-            match last {
-                1 => self.accusative(tu),
-                2..=4 => self.genitive(tu),
-                0 | 5..=9 => self.genitive_plural(tu),
-                _ => unreachable!(),
-            }
+            self.genitive_plural(tu)
         }
     }
 }
@@ -92,6 +89,11 @@ fn test() {
     assert_eq!(f.convert(Duration::from_secs(2)), "2 sekundy temu");
     assert_eq!(f.convert(Duration::from_secs(5)), "5 sekund temu");
     assert_eq!(f.convert(Duration::from_secs(12)), "12 sekund temu");
+    assert_eq!(f.convert(Duration::from_secs(21)), "21 sekund temu");
+    assert_eq!(f.convert(Duration::from_secs(22)), "22 sekundy temu");
+    assert_eq!(f.convert(Duration::from_secs(21 * 60)), "21 minut temu");
+    assert_eq!(f.convert(Duration::from_secs(21 * 3600)), "21 godzin temu");
+    assert_eq!(f.convert(Duration::from_secs(31 * 60)), "31 minut temu");
     assert_eq!(
         f.convert(Duration::from_secs(1 * 3600 * 12 * 366)),
         "6 miesięcy temu"
